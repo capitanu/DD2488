@@ -1,9 +1,0 @@
-[0m[[0m[0mdebug[0m] [0m[0mPackaging /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/lab0/target/scala-2.13/lab0_2.13-0.1.0-SNAPSHOT.jar ...[0m
-[0m[[0m[0mdebug[0m] [0m[0mInput file mappings:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	recfun[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/lab0/target/scala-2.13/classes/recfun[0m
-[0m[[0m[0mdebug[0m] [0m[0m	recfun/Main$.class[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/lab0/target/scala-2.13/classes/recfun/Main$.class[0m
-[0m[[0m[0mdebug[0m] [0m[0m	recfun/Main.class[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/lab0/target/scala-2.13/classes/recfun/Main.class[0m
-[0m[[0m[0mdebug[0m] [0m[0mDone packaging.[0m
