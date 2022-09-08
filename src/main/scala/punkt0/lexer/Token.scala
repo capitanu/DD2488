@@ -20,12 +20,12 @@ case object COMMA extends TokenKind       // ,
 case object EQSIGN extends TokenKind      // =
 case object EQUALS extends TokenKind      // ==
 case object BANG extends TokenKind        // !
-case object LPAREN extends TokenKind      // (
+case object LPAREN extends TokenKind      // ( SHOULD BALANCE
 case object RPAREN extends TokenKind      // )
-case object LBRACE extends TokenKind      // {
+case object LBRACE extends TokenKind      // { SHOULD BALANCE
 case object RBRACE extends TokenKind      // }
-case object AND extends TokenKind         // &&
-case object OR extends TokenKind          // ||
+case object AND extends TokenKind         // && 
+case object OR extends TokenKind          // || 
 case object LESSTHAN extends TokenKind    // <
 case object PLUS extends TokenKind        // +
 case object MINUS extends TokenKind       // -
