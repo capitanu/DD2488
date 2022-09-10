@@ -229,6 +229,9 @@ object Lexer extends Phase[File, Iterator[Token]] {
               token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
             }
         }
+
+        if(token.kind == BAD)
+          Reporter.error("Wrong token found")
         token
       }
     }
