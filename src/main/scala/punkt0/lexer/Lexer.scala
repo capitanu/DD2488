@@ -35,7 +35,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
       }
 
       def hasNext: Boolean = {
-        if(char == -1)
+        if(char == -1 && flag_read == false)
           return false
         return true
       }
@@ -53,7 +53,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
           }
         }
 
-        var token: Token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+        var token: Token = null
 
         char match {
           case -1 => token = new Token(EOF).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
@@ -87,34 +87,38 @@ object Lexer extends Phase[File, Iterator[Token]] {
             char = in.read()
             char match {
               case '\n' =>
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
                 l = l + 1
                 c = -1
-                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case '&' => token = new Token(AND).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
-              case _ => token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+              case _ =>
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+                flag_read = true
             }
             c = c + 1
           case '|' =>
             char = in.read()
             char match {
               case '\n' =>
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
                 l = l + 1
                 c = -1
-                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case '|' => token = new Token(OR).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
-              case _ => token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+              case _ =>
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+                flag_read = true
             }
             c = c + 1
           case '/' =>
             char = in.read()
             char match {
               case '\n' =>
+                token = new Token(DIV).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
                 l = l + 1
                 c = -1
-                token = new Token(DIV).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case '/' =>
                 var currLine = l
-                while(currLine == l)
+                while(currLine == l && char != -1)
                   read()
                 flag_read = true
                 token = next()
@@ -204,10 +208,12 @@ object Lexer extends Phase[File, Iterator[Token]] {
               var tmp_l = l
               var tmp_c = c
               var rtn = ""
-              c = c + 1
-              if(char == -1 || char == '\n')
+              if(char == -1 || char == '\n') {
                 token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+                c = c + 1
+              }
               else {
+                c = c + 1
                 while(char != '\"' && char != -1) {
                   rtn = rtn + char.toChar
                   char = in.read()
@@ -220,13 +226,20 @@ object Lexer extends Phase[File, Iterator[Token]] {
                 }
                 if(tmp_l == l && char != -1)
                   token = new STRLIT(rtn).setPos(f, (tmp_l << Positioned.COLUMN_BITS) | (tmp_c & Positioned.COLUMN_MASK))
-                else
-                  token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+                else if(char == -1) {
+                  token = new Token(BAD).setPos(f, (tmp_l << Positioned.COLUMN_BITS) | (tmp_c & Positioned.COLUMN_MASK))
+                  flag_read = true
+                } else {
+                  token = new Token(BAD).setPos(f, (tmp_l << Positioned.COLUMN_BITS) | (tmp_c & Positioned.COLUMN_MASK))
+                }
+
               }
             }
             else {
-//              Reporter.error("Wrong token found")
-              token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
+              if(char == ' ' || char == '\n')
+                token = next()
+              else
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
             }
         }
 

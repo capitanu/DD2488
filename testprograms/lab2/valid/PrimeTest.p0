@@ -88,5 +88,5 @@ class primeTest {
 }
 
 object Main extends App {
-  println(new primeTest().init()) /
-}
+  println(new primeTest().init()) / ""
+} test_123

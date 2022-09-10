@@ -22,7 +22,7 @@ case object EQUALS extends TokenKind      // ==
 case object BANG extends TokenKind        // !
 case object LPAREN extends TokenKind      // ( 
 case object RPAREN extends TokenKind      // )
-case object LBRACE extends TokenKind      // { 
+case object LBRACE extends TokenKind      // {
 case object RBRACE extends TokenKind      // }
 case object AND extends TokenKind         // && 
 case object OR extends TokenKind          // || 
