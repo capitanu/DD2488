@@ -1,0 +1,11 @@
+[0m[[0m[0minfo[0m] [0m[0mwelcome to sbt 1.7.1 (Oracle Corporation Java 18.0.2)[0m
+[0m[[0m[0minfo[0m] [0m[0mloading settings for project labs-build from assembly.sbt,plugins.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mloading project definition from /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/project[0m
+[0m[[0m[0minfo[0m] [0m[0mloading settings for project labs from build.sbt ...[0m
+[0m[[0m[0minfo[0m] [0m[0mset current project to punkt0 (in build file:/home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/)[0m
+[0m[[0m[0minfo[0m] [0m[0mrunning punkt0.Main --token testprograms/lab2/valid/crazyids.p0[0m
+ID(ab12_123123__asdA)(1:1)
+ID(cLass)(1:19)
+ID(iNt)(1:25)
+ID(A00000000___)(1:29)
+EOF()
