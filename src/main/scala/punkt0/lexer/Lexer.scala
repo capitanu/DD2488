@@ -87,9 +87,9 @@ object Lexer extends Phase[File, Iterator[Token]] {
             char = in.read()
             char match {
               case '\n' =>
-                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
                 l = l + 1
                 c = -1
+                token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case '&' => token = new Token(AND).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case _ => token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
             }
@@ -111,6 +111,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
               case '\n' =>
                 l = l + 1
                 c = -1
+                token = new Token(DIV).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               case '/' =>
                 var currLine = l
                 while(currLine == l)
@@ -207,7 +208,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
               if(char == -1 || char == '\n')
                 token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               else {
-                while(char != '\"') {
+                while(char != '\"' && char != -1) {
                   rtn = rtn + char.toChar
                   char = in.read()
                   if(char == '\n') {
@@ -217,22 +218,18 @@ object Lexer extends Phase[File, Iterator[Token]] {
                     c = c + 1
                   }
                 }
-                if(tmp_l == l)
+                if(tmp_l == l && char != -1)
                   token = new STRLIT(rtn).setPos(f, (tmp_l << Positioned.COLUMN_BITS) | (tmp_c & Positioned.COLUMN_MASK))
                 else
                   token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
               }
-
-
             }
             else {
-              Reporter.error("Wrong token found")
+//              Reporter.error("Wrong token found")
               token = new Token(BAD).setPos(f, (l << Positioned.COLUMN_BITS) | (c & Positioned.COLUMN_MASK))
             }
         }
-
         token
-
       }
     }
   }

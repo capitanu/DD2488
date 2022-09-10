@@ -5,7 +5,7 @@
 [0m[[0m[0minfo[0m] [0m[0mset current project to punkt0 (in build file:/home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/)[0m
 [0m[[0m[0minfo[0m] [0m[0mcompiling 1 Scala source to /home/calin/kth/TCSCM2/DD2488_Compiler_Construction/labs/target/scala-2.13/classes ...[0m
 [0m[[0m[0minfo[0m] [0m[0mdone compiling[0m
-[0m[[0m[0minfo[0m] [0m[0mrunning punkt0.Main --token testprograms/lab2/valid/PrimeTest.p0[0m
+[0m[[0m[0minfo[0m] [0m[0mrunning punkt0.Main --tokens testprograms/lab2/valid/PrimeTest.p0[0m
 CLASS(1:1)
 ID(Arr)(1:7)
 LBRACE(1:11)
@@ -613,5 +613,8 @@ ID(init)(91:27)
 LPAREN(91:31)
 RPAREN(91:32)
 RPAREN(91:33)
-RBRACE(92:1)
+DIV(92:2047)
+RBRACE(92:0)
 EOF()
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 2 s, completed Sep 11, 2022, 12:18:38 AM[0m
+[0J
