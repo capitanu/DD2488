@@ -120,6 +120,8 @@ object Lexer extends Phase[File, Iterator[Token]] {
               case '*' =>
                 var flag = true
                 while(hasNext && flag) {
+                  if(char == -1)
+                    Reporter.error("Wrong token found")
                   read()
                   if(char == '*') {
                     char = in.read()
