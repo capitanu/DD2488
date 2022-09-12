@@ -18,7 +18,7 @@ class primeTest {
 
   var n : Int = 0;
   var tab : Arr = null;
- 
+
   def mod(m : Int, n : Int) : Int = {
     m - (n * (m / n))
   }
@@ -88,5 +88,5 @@ class primeTest {
 }
 
 object Main extends App {
-  println(new primeTest().init()) / ""
-} test_123
+  println(new primeTest().init())
+}
