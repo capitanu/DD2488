@@ -165,7 +165,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
               case '*' => skipMultiComment(); token = next()
               case _ => token = new Token(DIV).setPos(f, temp_pos)
             }
-          case _ =>
+          case x =>
             if(char <= '9' && char >= '0') {
               token = intToken(char)
               token.setPos(f, temp_pos)
@@ -178,13 +178,10 @@ object Lexer extends Phase[File, Iterator[Token]] {
               token = stringToken()
               token.setPos(f, temp_pos)
             } else {
+              Reporter.error("Bad token found " + x)
               read(); token = new Token(BAD).setPos(f, temp_pos)
             }
         }
-
-        if(token.kind == BAD)
-          Reporter.error("Wrong token found")
-
         token
       }
     }

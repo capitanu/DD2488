@@ -13,4 +13,5 @@ comment here
 &&
 
  test // Another test here
-test /* */ 
+test /* */
+$
