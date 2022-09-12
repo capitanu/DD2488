@@ -46,7 +46,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
       }
 
       def skipNewlineOrWhitespace(): Unit = {
-        while(char == ' ' || char == '\n') {
+        while(char == ' ' || char == '\n' || char == '\r') {
           read()
         }
       }

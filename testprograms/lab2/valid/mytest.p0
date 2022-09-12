@@ -21,3 +21,12 @@ token1   token2/
 / //
 
 what*is wrong
+/* test */ test
+/* test */test
+ /* test */
+test  /* test */
+/* test */&&
+/*
+test */&&
+/* te
+st */lasttoken
