@@ -35,11 +35,13 @@ object Lexer extends Phase[File, Iterator[Token]] {
           read()
           if(char == '*') {
             read()
-            if(char == '/')
+            if(char == '/') {
+              read()
               flag = false
+            }
           }
         }
-        if(char == -1) 
+        if(char == -1 && flag == true) 
           Reporter.error("Wrong block comment")
       }
 

@@ -11,3 +11,6 @@ comment here
 22
 "test"
 &&
+
+ test // Another test here
+test /* */ 
