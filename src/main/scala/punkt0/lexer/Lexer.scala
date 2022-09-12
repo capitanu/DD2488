@@ -136,12 +136,11 @@ object Lexer extends Phase[File, Iterator[Token]] {
           case '-' => read(); token = new Token(MINUS).setPos(f, temp_pos)
           case '*' => read(); token = new Token(TIMES).setPos(f, temp_pos)
           case '=' =>
-            if(nextMatches('=')) {
-              read(); token = new Token(EQUALS).setPos(f, temp_pos)
+            read()
+            char match {
+              case '=' => read(); token = new Token(EQUALS).setPos(f, temp_pos)
+              case _ => token = new Token(EQSIGN).setPos(f, temp_pos)
             }
-            else
-              token = new Token(EQSIGN).setPos(f, temp_pos)
-              
           case '&' =>
             read()
             char match {

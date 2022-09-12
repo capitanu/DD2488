@@ -14,4 +14,10 @@ comment here
 
  test // Another test here
 test /* */
-$
+
+/ /test
+/* */x test 123test123
+token1   token2/
+/ //
+
+what*is wrong
