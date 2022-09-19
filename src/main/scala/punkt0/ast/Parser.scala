@@ -283,14 +283,9 @@ object Parser extends Phase[Iterator[Token], Program] {
       var typeTree: TypeTree = typeParser
       eat(EQSIGN)
       var exprDecl: ExprTree = exprParser
-      if(currentToken.kind == SEMICOLON)
-        eat(SEMICOLON)
-      else {
-        if(currentToken.kind != RBRACE)
-          expected(RBRACE)
-      }
+      eat(SEMICOLON)
 
-      return VarDecl(typeTree, varID, exprDecl)
+      return VarDecl(typeTree, varID, exprDecl).setPos(varID)
     }
 
     def methodsParser: List[MethodDecl] = {
@@ -325,18 +320,13 @@ object Parser extends Phase[Iterator[Token], Program] {
         eat(LBRACE)
         var varsList: List[VarDecl] = List[VarDecl]()
         var exprsList: List[ExprTree] = List[ExprTree]()
-        while(currentToken.kind != RBRACE) {
-          if(currentToken.kind == VAR) {
-            varsList = varsList :+ singleVarParser
-          } else {
-            exprsList = exprsList :+ exprParser
-            if(currentToken.kind == SEMICOLON)
-              eat(SEMICOLON)
-            else {
-              if(currentToken.kind != RBRACE)
-                expected(RBRACE)
-            }
-          }
+        while(currentToken.kind == VAR) {
+          varsList = varsList :+ singleVarParser
+        }
+        exprsList = exprsList :+ exprParser
+        while(currentToken.kind == SEMICOLON) {
+          eat(SEMICOLON)
+          exprsList = exprsList :+ exprParser
         }
         eat(RBRACE)
         var retExpr: ExprTree = exprsList.last

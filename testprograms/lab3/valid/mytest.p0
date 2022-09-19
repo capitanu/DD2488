@@ -1,18 +1,5 @@
-class Arr {
-} 
-class Empty extends Arr {}
-class Cons extends Arr {
-  var value: Int = 0;
-  var next: Arr = 3;
-} // End of Arr implementation
-
 class BS {
-    var number : Arr = 3;
-    var size : Int = 0;
-
-    // Invoke defs to initialize, print and search
-    // for elements on the array
-	def test(x: Int): Boolean = {}
+	  var x: Int = !3 && 2;
 }
 
 object Main extends App {
