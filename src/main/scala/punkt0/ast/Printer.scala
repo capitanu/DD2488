@@ -37,11 +37,16 @@ object Printer {
           else
             rtn = rtn + "def "
           rtn = rtn + id.value + "("
-          var lastArg = args.last
-          var argsTemp = args
-          argsTemp = argsTemp.dropRight(1)
-          argsTemp.foreach(arg => rtn = rtn + recursiveApply(arg) +  ", ")
-          rtn = rtn + recursiveApply(lastArg) + "): " + recursiveApply(retType) + " = {\n"
+          if(args.size > 0) {            
+            var lastArg = args.last
+            var argsTemp = args
+            argsTemp = argsTemp.dropRight(1)
+            argsTemp.foreach(arg => rtn = rtn + recursiveApply(arg) +  ", ")
+            rtn = rtn + recursiveApply(lastArg) + "): " + recursiveApply(retType) + " = {\n"
+          }
+          else {
+            rtn = rtn + "): " + recursiveApply(retType) + " = {\n"
+          }
           vars.foreach(v => rtn = rtn + recursiveApply(v))
           expr.foreach(e => rtn = rtn + recursiveApply(e) + "; \n")
           rtn = rtn + recursiveApply(retExpr)
@@ -56,36 +61,43 @@ object Printer {
         case Or(lhs, rhs) => recursiveApply(lhs) + " || " + recursiveApply(rhs)
         case Minus(lhs, rhs) => recursiveApply(lhs) + " - " + recursiveApply(rhs)
         case Times(lhs, rhs) => recursiveApply(lhs) + " * " + recursiveApply(rhs)
+        case Plus(lhs, rhs) => recursiveApply(lhs) + " + " + recursiveApply(rhs)
         case Div(lhs, rhs) => recursiveApply(lhs) + " / " + recursiveApply(rhs)
         case LessThan(lhs, rhs) => recursiveApply(lhs) + " < " + recursiveApply(rhs)
         case Equals(lhs, rhs) => recursiveApply(lhs) + " == " + recursiveApply(rhs)
         case MethodCall(obj, meth, args) =>
           var rtn = recursiveApply(obj) + "." + recursiveApply(meth) + "("
+          if(args.size > 0) {
           var lastArg = args.last
           var argsTemp = args
           argsTemp = argsTemp.dropRight(1)
           argsTemp.foreach(arg => rtn = rtn + recursiveApply(arg) +  ", ")
-          rtn + recursiveApply(lastArg) + ")"
+            rtn + recursiveApply(lastArg) + ")"
+          } else {
+            rtn + ")"
+          }
         case IntLit(value) => " " + value.toString + " "
-        case StringLit(value) => " " + value + " "
+        case StringLit(value) => "\"" + value + "\""
         case True() => " true "
         case False() => " false "
-        case Identifier(value) => " " + value + " "
+        case Identifier(value) => value.toString 
         case This() => " this"
         case Null() => " null "
         case New(tpe) => "new " + recursiveApply(tpe) + "()"
         case Not(expr) => "!" + recursiveApply(expr)
         case Block(expr) =>
           var rtn = "{\n"
-          expr.foreach(exp => rtn = rtn + recursiveApply(exp) + "; \n")
-          rtn = rtn + "}\n"
-          rtn
+          var exprTemp = expr
+          var last = exprTemp.last
+          exprTemp = exprTemp.dropRight(1)
+          exprTemp.foreach(exp => rtn = rtn + recursiveApply(exp) + "; \n")
+          rtn + recursiveApply(last) + "\n}\n"
         case If(expr, thn, els) =>
           els match {
             case Some(x) =>
               "if(" + recursiveApply(expr) + ") " + recursiveApply(thn) + " else " + recursiveApply(x)
             case _ =>
-            "if(" + recursiveApply(expr) + ") " + recursiveApply(thn)
+              "if(" + recursiveApply(expr) + ") " + recursiveApply(thn)
           }
         case While(cond, body) =>
           "while(" + recursiveApply(cond) + ")" + recursiveApply(body) + "\n"
@@ -94,7 +106,7 @@ object Printer {
         case Assign(id, expr) =>
           id.value.toString + " = " + recursiveApply(expr)
         case _ =>
-          ""
+          "WRONG"
       }
 
     }
