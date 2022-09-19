@@ -339,13 +339,10 @@ object Parser extends Phase[Iterator[Token], Program] {
           }
         }
         eat(RBRACE)
-        if(exprsList.size > 0) {
-          var retExpr: ExprTree = exprsList.last
-          exprsList = exprsList.dropRight(1)
-          methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, retExpr)
-        } else {
-          methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, null)
-        }
+        var retExpr: ExprTree = exprsList.last
+        exprsList = exprsList.dropRight(1)
+
+        methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, retExpr)
       }
 
       return methodsList
