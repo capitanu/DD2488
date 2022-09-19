@@ -124,11 +124,14 @@ object Parser extends Phase[Iterator[Token], Program] {
     def priorityTIMESorDIV: ExprTree = {
       var exprToken = priorityToken
       while(currentToken.kind == TIMES || currentToken.kind == DIV) {
-        eat(currentToken.kind)
-        if(currentToken.kind == TIMES)
+        if(currentToken.kind == TIMES) {
+          eat(TIMES)
           exprToken = Times(exprToken, priorityToken)
-        if(currentToken.kind == DIV)
+        }
+        if(currentToken.kind == DIV) {
+          eat(DIV)
           exprToken = Div(exprToken, priorityToken)
+        }
       }
       return exprToken
     }
@@ -201,6 +204,10 @@ object Parser extends Phase[Iterator[Token], Program] {
               listRtn = listRtn :+ exprParser
               if(currentToken.kind == SEMICOLON)
                 eat(SEMICOLON)
+              else {
+                if(currentToken.kind != RBRACE)
+                  expected(RBRACE)
+              }
             }
             eat(RBRACE)
             var rtn = Block(listRtn).setPos(tokenPos)
@@ -249,7 +256,7 @@ object Parser extends Phase[Iterator[Token], Program] {
         }
         eat(RPAREN)
         
-        return MethodCall(expr, methodId, methodArgs).setPos(tokenPos)
+        return dotToken(MethodCall(expr, methodId, methodArgs).setPos(tokenPos))
 
       } else {
         return expr
@@ -275,6 +282,11 @@ object Parser extends Phase[Iterator[Token], Program] {
       var exprDecl: ExprTree = exprParser
       if(currentToken.kind == SEMICOLON)
         eat(SEMICOLON)
+      else {
+        if(currentToken.kind != RBRACE)
+          expected(RBRACE)
+      }
+
       return VarDecl(typeTree, varID, exprDecl)
     }
 
@@ -314,6 +326,10 @@ object Parser extends Phase[Iterator[Token], Program] {
             exprsList = exprsList :+ exprParser
             if(currentToken.kind == SEMICOLON)
               eat(SEMICOLON)
+            else {
+              if(currentToken.kind != RBRACE)
+                expected(RBRACE)
+            }
           }
         }
         eat(RBRACE)
@@ -366,6 +382,12 @@ object Parser extends Phase[Iterator[Token], Program] {
           varsList = varsList :+ singleVarParser
         } else {
           exprsList = exprsList :+ exprParser
+          if(currentToken.kind == SEMICOLON)
+            eat(SEMICOLON)
+          else {
+            if(currentToken.kind != RBRACE)
+              expected(RBRACE)
+          }
         }
       }
       eat(RBRACE)
