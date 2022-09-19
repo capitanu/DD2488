@@ -251,8 +251,11 @@ object Parser extends Phase[Iterator[Token], Program] {
         var methodArgs: List[ExprTree] = List[ExprTree]()
         while(currentToken.kind != RPAREN) {
           methodArgs = methodArgs :+ exprParser
-          if(currentToken.kind != RPAREN)
+          if(currentToken.kind != RPAREN){
             eat(COMMA)
+            if(currentToken.kind == RPAREN)
+              expected(IDKIND)
+          }
         }
         eat(RPAREN)
         
@@ -309,8 +312,11 @@ object Parser extends Phase[Iterator[Token], Program] {
           eat(COLON)
           var argType: TypeTree = typeParser
           argsList = argsList :+ Formal(argType, argID)
-          if(currentToken.kind != RPAREN)
+          if(currentToken.kind != RPAREN) {
             eat(COMMA)
+            if(currentToken.kind == RPAREN)
+              expected(IDKIND)
+          }
         }
         eat(RPAREN)
         eat(COLON)
