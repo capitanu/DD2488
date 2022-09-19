@@ -16,8 +16,18 @@ object Printer {
         case MainDecl(obj, parent, vars, expr) =>
           var rtn = "object " + recursiveApply(obj) + " extends " + recursiveApply(parent) + " {\n"
           vars.foreach(v => rtn = rtn + recursiveApply(v))
-          expr.foreach(e => rtn = rtn + recursiveApply(e) + "; \n")
-          rtn = rtn + "}\n"
+
+          var exprTemp = expr
+          if(exprTemp.size > 0) {
+            var last = exprTemp.last
+            exprTemp = exprTemp.dropRight(1)
+            exprTemp.foreach(exp => rtn = rtn + recursiveApply(exp) + "; \n")
+            rtn = rtn + recursiveApply(last) + "\n}\n"
+          }
+          else {
+            rtn = rtn + "}\n"
+          }
+
           rtn
         case ClassDecl(id, parent, vars, method) =>
           var rtn = "class " + recursiveApply(id)
