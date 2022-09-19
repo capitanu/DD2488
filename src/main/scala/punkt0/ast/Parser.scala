@@ -199,6 +199,8 @@ object Parser extends Phase[Iterator[Token], Program] {
             var listRtn: List[ExprTree] = List[ExprTree]()
             while(currentToken.kind != RBRACE) {
               listRtn = listRtn :+ exprParser
+              if(currentToken.kind == SEMICOLON)
+                eat(SEMICOLON)
             }
             eat(RBRACE)
             var rtn = Block(listRtn).setPos(tokenPos)
@@ -295,6 +297,8 @@ object Parser extends Phase[Iterator[Token], Program] {
           eat(COLON)
           var argType: TypeTree = typeParser
           argsList = argsList :+ Formal(argType, argID)
+          if(currentToken.kind != RPAREN)
+            eat(COMMA)
         }
         eat(RPAREN)
         eat(COLON)
