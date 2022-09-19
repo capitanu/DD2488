@@ -330,19 +330,23 @@ object Parser extends Phase[Iterator[Token], Program] {
             varsList = varsList :+ singleVarParser
           } else {
             exprsList = exprsList :+ exprParser
-            if(currentToken.kind == SEMICOLON)
-              eat(SEMICOLON)
-            else {
-              if(currentToken.kind != RBRACE)
-                expected(RBRACE)
-            }
+          }
+          if(currentToken.kind == SEMICOLON)
+            eat(SEMICOLON)
+          else {
+            if(currentToken.kind != RBRACE)
+              expected(RBRACE)
           }
         }
         eat(RBRACE)
-        var retExpr: ExprTree = exprsList.last
-        exprsList = exprsList.dropRight(1)
-
-        methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, retExpr)
+        if(exprsList.size > 0) {
+          var retExpr: ExprTree = exprsList.last
+          exprsList = exprsList.dropRight(1)
+          methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, retExpr)
+        }
+        else {
+          methodsList = methodsList :+ MethodDecl(overrides, retType, methodID, argsList, varsList, exprsList, null)
+        }
       }
 
       return methodsList

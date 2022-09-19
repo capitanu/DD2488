@@ -12,6 +12,7 @@ class BS {
 
     // Invoke defs to initialize, print and search
     // for elements on the array
+	def test(x: Int): Boolean = {}
 }
 
 object Main extends App {

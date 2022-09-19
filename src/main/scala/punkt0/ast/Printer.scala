@@ -49,7 +49,8 @@ object Printer {
           }
           vars.foreach(v => rtn = rtn + recursiveApply(v))
           expr.foreach(e => rtn = rtn + recursiveApply(e) + "; \n")
-          rtn = rtn + recursiveApply(retExpr)
+          if(retExpr != null)
+            rtn = rtn + recursiveApply(retExpr)
           rtn + "}\n"
         case BooleanType() => "Boolean"
         case Formal(tpe, id) =>
