@@ -4,6 +4,7 @@ class BS {
 
 object Main extends App {
     var x: Int = 0;
+	0;
 }
 
 
