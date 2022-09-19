@@ -3,6 +3,7 @@ package punkt0
 import java.io.File
 
 import lexer._
+import ast._
 
 object Main {
 
@@ -17,6 +18,14 @@ object Main {
 
       case "--tokens" :: args =>
         ctx = ctx.copy(doTokens = true)
+        processOption(args)
+
+      case "--ast" :: args =>
+        ctx = ctx.copy(doAST = true)
+        processOption(args)
+
+      case "--print" :: args =>
+        ctx = ctx.copy(doPrintMain = true)
         processOption(args)
 
       case "-d" :: out :: args =>
@@ -43,19 +52,29 @@ object Main {
   def displayHelp(): Unit = {
     println("Usage: <punkt0c> [options] <file>")
     println("Options include:")
-    println(" --help        displays this help")
+    println(" --help         displays this help")
     println(" --tokens       print all tokens")
-    println(" -d <outdir>   generates class files in the specified directory")
+    println(" --ast          creates the AST")
+    println(" --print        prints the AST")
+    println(" -d <outdir>    generates class files in the specified directory")
   }
 
   def main(args: Array[String]): Unit = {
     val ctx = processOptions(args)
 
     val lexer = Lexer.run(ctx.file.get)(ctx)
+    val ast = Parser.run(lexer)(ctx)
+    val pp = Printer.apply(ast)
 
     if(ctx.doTokens)
       while(lexer.hasNext)
         println(lexer.next())
+
+    if(ctx.doAST)
+      println(ast)
+
+    if(ctx.doPrintMain)
+      println(pp)
 
     Reporter.terminateIfErrors()
   }

@@ -25,7 +25,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
       }
 
       def skipSingleComment(): Unit = {
-        while(char != '\n' && char != -1)
+        while(char != '\n' && char != '\r' && char != -1)
           read()
       }
 
@@ -46,7 +46,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
       }
 
       def skipNewlineOrWhitespace(): Unit = {
-        while(char == ' ' || char == '\n' || char == '\r') {
+        while(char == ' ' || char == '\n' || char == '\r' || char == '\t') {
           read()
         }
       }
@@ -59,7 +59,7 @@ object Lexer extends Phase[File, Iterator[Token]] {
       def stringToken(): Token = {
         read()
         var rtn = ""
-        while(char != '\"' && char != -1 && char != '\n') {
+        while(char != '\"' && char != -1 && char != '\n' && char != '\r') {
           rtn = rtn + char.toChar
           read()
         }

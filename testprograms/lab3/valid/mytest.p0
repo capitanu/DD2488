@@ -1,0 +1,24 @@
+class Arr {
+} 
+class Empty extends Arr {}
+class Cons extends Arr {
+  var value: Int = 0;
+  var next: Arr = 3;
+} // End of Arr implementation
+
+// This class contains an array of integers and
+// defs to initialize, print and search the array
+// using Binary Search
+class BS {
+    var number : Arr = 3;
+    var size : Int = 0;
+
+    // Invoke defs to initialize, print and search
+    // for elements on the array
+}
+
+object Main extends App {
+    var x: Int = 0;
+}
+
+
