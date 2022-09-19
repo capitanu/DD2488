@@ -5,9 +5,7 @@ import Trees._
 
 object Printer {
   def apply(t: Tree): String = {
-    def recursiveApply(tree: Tree): String = {
-      "???"
-    }
+    "???"
   }
 }
 
