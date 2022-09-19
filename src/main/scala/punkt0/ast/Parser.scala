@@ -184,7 +184,7 @@ object Parser extends Phase[Iterator[Token], Program] {
             rtn
           case BANG =>
             eat(BANG)
-            var rtn = Not(exprParser).setPos(tokenPos)
+            var rtn = Not(priorityToken).setPos(tokenPos)
             rtn
           case PRINTLN =>
             eat(PRINTLN)
