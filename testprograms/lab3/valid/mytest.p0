@@ -6,9 +6,6 @@ class Cons extends Arr {
   var next: Arr = 3;
 } // End of Arr implementation
 
-// This class contains an array of integers and
-// defs to initialize, print and search the array
-// using Binary Search
 class BS {
     var number : Arr = 3;
     var size : Int = 0;
