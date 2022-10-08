@@ -4,6 +4,7 @@ import java.io.File
 
 import lexer._
 import ast._
+import analyzer._
 
 object Main {
 
@@ -26,6 +27,10 @@ object Main {
 
       case "--print" :: args =>
         ctx = ctx.copy(doPrintMain = true)
+        processOption(args)
+
+      case "--symid" :: args =>
+        ctx = ctx.copy(doSymbolIds = true)
         processOption(args)
 
       case "-d" :: out :: args =>
@@ -56,6 +61,7 @@ object Main {
     println(" --tokens       print all tokens")
     println(" --ast          creates the AST")
     println(" --print        prints the AST")
+    println(" --symid        adds the symbold ids")
     println(" -d <outdir>    generates class files in the specified directory")
   }
 
@@ -64,7 +70,10 @@ object Main {
 
     val lexer = Lexer.run(ctx.file.get)(ctx)
     val ast = Parser.run(lexer)(ctx)
+    val symIDs = NameAnalysis.run(ast)(ctx)
+    val ppSymIds = Printer.apply(symIDs)
     val pp = Printer.apply(ast)
+
 
     if(ctx.doTokens)
       while(lexer.hasNext)
@@ -75,6 +84,10 @@ object Main {
 
     if(ctx.doPrintMain)
       println(pp)
+
+    if(ctx.doSymbolIds)
+      print(ppSymIds)
+
 
     Reporter.terminateIfErrors()
   }

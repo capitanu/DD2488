@@ -90,8 +90,11 @@ object Printer {
         case StringLit(value) => "\"" + value + "\""
         case True() => " true "
         case False() => " false "
-        case Identifier(value) => value.toString 
-        case This() => " this"
+        case x @ Identifier(value) =>
+          println(value)
+          value.toString + "#"  + x.getSymbol.id
+        case x @ This() =>
+          " this#"  + x.getSymbol.id
         case Null() => " null "
         case New(tpe) => "new " + recursiveApply(tpe) + "()"
         case Not(expr) => "!" + recursiveApply(expr)
