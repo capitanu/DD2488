@@ -16,6 +16,7 @@ class DrunkPirate {
   }
   def bottles(number: Int): String = {
 	var x: DrunkPirate = new DrunkPirate();
+	x = new DrunkPirate();
 	if(x.sing()) println("Done!");
 	if(number ==  0 ) {
 	  "no more bottles"

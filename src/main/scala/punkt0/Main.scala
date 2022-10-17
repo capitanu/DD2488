@@ -78,7 +78,7 @@ object Main {
     val ppSymIds = Printer.apply(symIDs)
     val pp = Printer.apply(ast)
     val typeChecking = TypeChecking.run(symIDs)(ctx)
-    //val astPlus = TypedASTPrinter.apply(typeChecking)
+    val astPlus = TypedASTPrinter.apply(typeChecking)
 
 
     if(ctx.doTokens)
@@ -95,7 +95,7 @@ object Main {
       print(ppSymIds)
 
     if(ctx.doASTPlus)
-      print("test")
+      print(astPlus)
 
 
     Reporter.terminateIfErrors()
