@@ -383,6 +383,13 @@ object NameAnalysis extends Phase[Program, Program] {
           })
 
           m.vars.foreach(v => {
+
+
+            m.getSymbol.argList.foreach(a => {
+              if(a.name == v.id.value)
+                sys.error("Shadowing not allowed")
+            })
+
             val varType = getType(v.tpe)
             val sym = (new VariableSymbol(v.id.value)).setPos(v)
             sym.setType(varType)
