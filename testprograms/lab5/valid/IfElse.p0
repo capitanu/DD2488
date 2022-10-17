@@ -1,8 +1,16 @@
 class A {
 }
 
+class B extends A {}
+class C extends F {}
+
+class D extends E {}
+class E extends F {}
+
+class F extends B {}
+
 object Main extends App {
   var x : A = null;
-  x = if (true) new A() else new A();
+  if (true) println("test") else new D();
   println("test")
 }
