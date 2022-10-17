@@ -142,11 +142,31 @@ object TypeChecking extends Phase[Program, Program] {
             case Some(ee) =>
               typeCheckExpr(thn)
               typeCheckExpr(ee)
-              if(ee.getType != thn.getType)
-                sys.error("Then and else branches do not have matching types")
+                (thn.getType, ee.getType) match {
+                case (TAnyRef(_), TNull) =>
+                  expr.setType(thn.getType)
+                  thn.getType
+                case (TAnyRef(_), TUnit) =>
+                  expr.setType(thn.getType)
+                  thn.getType
+                case (TNull, TAnyRef(_)) =>
+                  expr.setType(ee.getType)
+                  ee.getType
+                case (TUnit, TAnyRef(_)) =>
+                  expr.setType(ee.getType)
+                  ee.getType
+                case (TAnyRef(x), TAnyRef(y)) =>
+                  //Fix inheritance minimum match
+                  sys.error("Needs implementation")
+                case (x, y) =>
+                  if (x == y) {
+                    expr.setType(x)
+                    x
+                  } else {
+                    sys.error("Then and else branches don't have matching type")
+                  }
 
-              expr.setType(thn.getType)
-              thn.getType
+              }
 
             case None =>
               typeCheckExpr(thn)
