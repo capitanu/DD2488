@@ -1,6 +1,8 @@
 package punkt0
 package analyzer
 
+import Types._
+
 object Symbols {
 
   trait Symbolic[S <: Symbol] {
@@ -18,13 +20,13 @@ object Symbols {
     }
   }
 
-  sealed abstract class Symbol extends Positioned {
+  sealed abstract class Symbol extends Positioned with Typed {
     val id: Int = ID.next
     val name: String
   }
 
   private object ID {
-    private var c: Int = 0
+    private var c: Int = 1
 
     def next: Int = {
       val ret = c

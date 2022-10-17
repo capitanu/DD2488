@@ -32,6 +32,9 @@ object Main {
       case "--symid" :: args =>
         ctx = ctx.copy(doSymbolIds = true)
         processOption(args)
+      case "--ast+" :: args =>
+        ctx = ctx.copy(doASTPlus = true)
+        processOption(args)
 
       case "-d" :: out :: args =>
         ctx = ctx.copy(outDir = Some(new File(out)))
@@ -62,6 +65,7 @@ object Main {
     println(" --ast          creates the AST")
     println(" --print        prints the AST")
     println(" --symid        adds the symbold ids")
+    println(" --ast+         adds the symbold ids")
     println(" -d <outdir>    generates class files in the specified directory")
   }
 
@@ -73,6 +77,8 @@ object Main {
     val symIDs = NameAnalysis.run(ast)(ctx)
     val ppSymIds = Printer.apply(symIDs)
     val pp = Printer.apply(ast)
+    val typeChecking = TypeChecking.run(symIDs)(ctx)
+    //val astPlus = TypedASTPrinter.apply(typeChecking)
 
 
     if(ctx.doTokens)
@@ -87,6 +93,9 @@ object Main {
 
     if(ctx.doSymbolIds)
       print(ppSymIds)
+
+    if(ctx.doASTPlus)
+      print("test")
 
 
     Reporter.terminateIfErrors()

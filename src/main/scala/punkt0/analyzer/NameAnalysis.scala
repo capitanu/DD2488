@@ -3,6 +3,7 @@ package analyzer
 
 import ast.Trees._
 import Symbols._
+import Types._
 
 object NameAnalysis extends Phase[Program, Program] {
 
@@ -10,6 +11,101 @@ object NameAnalysis extends Phase[Program, Program] {
     import Reporter._
 
     val global = new GlobalScope
+
+    def getType(tpe: TypeTree): Type = tpe match {
+      case IntType() => TInt
+      case BooleanType() => TBoolean
+      case StringType() => TString
+      case UnitType() => TUnit
+      case Identifier(v) =>
+        var cls = global.lookupClass(v).getOrElse(sys.error("Type does not exist"))
+        tpe.asInstanceOf[Identifier].setSymbol(cls)
+        cls.getType
+      case _ => sys.error("Type does not exist")
+    }
+
+    def recurseMethCall(expr: ExprTree, sym: Symbol): MethodSymbol = {
+      expr match {
+        case MethodCall(obj, meth, args) =>
+          recurseExpr(obj, sym)
+          obj match {
+            case This() =>
+              sym match {
+                case x: MethodSymbol => 
+                  x.classSymbol.lookupMethod(meth.value) match {
+                    case Some(m) =>
+                      if(m.argList.length == args.length) {
+                        meth.setSymbol(m)
+                        m
+                      }
+                      else
+                        sys.error("Wrong number of arguments")
+                    case None => sys.error("Method not declared")
+              }
+                case x: ClassSymbol =>
+                  x.lookupMethod(meth.value) match {
+                    case Some(m) =>
+                      if(m.argList.length == args.length) {
+                        meth.setSymbol(m)
+                        m
+                      }
+                      else
+                        sys.error("Wrong number of arguments")
+                    case None => sys.error("Method not declared")
+                  }
+                case _ => sys.error("Variable not declared in the current scope")
+              }
+              
+            case Identifier(value) => {
+              sym match {
+                case x: MethodSymbol =>
+                  x.lookupVar(value) match {
+                    case Some(v) =>
+                      obj.asInstanceOf[Identifier].setSymbol(v)
+                      val classExists = global.lookupClass(v.getType.toString).getOrElse(sys.error("Class is not defined"))
+                      val methodExists = classExists.lookupMethod(meth.value).getOrElse(sys.error("Method not defined within class"))
+                      if(methodExists.argList.length != args.length)
+                        sys.error("Method call and method declaration arg list size differs")
+                      meth.setSymbol(methodExists)
+                      methodExists
+                    case None =>
+                      sys.error("Identifier not defined in the current scope")
+                      }
+                case x: ClassSymbol =>
+                  x.lookupVar(value) match {
+                    case Some(v) =>
+                      obj.asInstanceOf[Identifier].setSymbol(v)
+                      val classExists = global.lookupClass(v.getType.toString).getOrElse(sys.error("Class is not defined"))
+                      val methodExists = classExists.lookupMethod(meth.value).getOrElse(sys.error("Method not defined within class"))
+                      if(methodExists.argList.length != args.length)
+                        sys.error("Method call and method declaration arg list size differs")
+                      meth.setSymbol(methodExists)
+                      methodExists
+                    case None =>
+                      sys.error("Identifier not defined in the current scope")
+                  }
+                case _ => sys.error("Variable not declared in the current scope")
+              }
+            }
+            case New(tpe) =>
+              global.lookupClass(tpe.value) match {
+                case Some(cls)=>
+                  tpe.setSymbol(cls)
+                  cls.lookupMethod(meth.value) match {
+                    case Some(declaredMeth) =>
+                      meth.setSymbol(declaredMeth)
+                      declaredMeth
+                    case None => sys.error("Method has not been declared insied of the class.")
+                  }
+                case None => sys.error("Class has not been declared.")
+              }
+            case x @ MethodCall(obj2, meth2, args2) =>
+              recurseMethCall(x,sym)
+            case _ => sys.error("Not a valid obj for the method call")
+          }
+        case _ => sys.error("Expected a method call")
+      }
+    }
 
     def recurseExpr(expr: ExprTree, sym: Symbol): Unit = {
       expr match {
@@ -38,7 +134,81 @@ object NameAnalysis extends Phase[Program, Program] {
           recurseExpr(lhs, sym)
           recurseExpr(rhs, sym)
         case MethodCall(obj, meth, args) =>
-        // Fix method call
+          recurseExpr(obj, sym)
+          obj match {
+            case This() =>
+              sym match {
+                case x: MethodSymbol => 
+                  x.classSymbol.lookupMethod(meth.value) match {
+                    case Some(m) =>
+                      if(m.argList.length == args.length)
+                        meth.setSymbol(m)
+                      else
+                        sys.error("Wrong number of arguments")
+                    case None => sys.error("Method not declared")
+              }
+                case x: ClassSymbol =>
+                  x.lookupMethod(meth.value) match {
+                    case Some(m) =>
+                      if(m.argList.length == args.length) 
+                        meth.setSymbol(m)
+                      else
+                        sys.error("Wrong number of arguments")
+                    case None => sys.error("Method not declared")
+                  }
+                case _ => sys.error("Variable not declared in the current scope")
+              }
+              
+            case Identifier(value) => {
+              sym match {
+                case x: MethodSymbol =>
+                  x.lookupVar(value) match {
+                    case Some(v) =>
+                      obj.asInstanceOf[Identifier].setSymbol(v)
+                      val classExists = global.lookupClass(v.getType.toString).getOrElse(sys.error("Class is not defined"))
+                      val methodExists = classExists.lookupMethod(meth.value).getOrElse(sys.error("Method not defined within class"))
+                      if(methodExists.argList.length != args.length)
+                        sys.error("Method call and method declaration arg list size differs")
+                      meth.setSymbol(methodExists)
+                    case None =>
+                      sys.error("Identifier not defined in the current scope")
+                      }
+                case x: ClassSymbol =>
+                  x.lookupVar(value) match {
+                    case Some(v) =>
+                      obj.asInstanceOf[Identifier].setSymbol(v)
+                      val classExists = global.lookupClass(v.getType.toString).getOrElse(sys.error("Class is not defined"))
+                      val methodExists = classExists.lookupMethod(meth.value).getOrElse(sys.error("Method not defined within class"))
+                      if(methodExists.argList.length != args.length)
+                        sys.error("Method call and method declaration arg list size differs")
+                      meth.setSymbol(methodExists)
+                    case None =>
+                      sys.error("Identifier not defined in the current scope")
+                  }
+                case _ => sys.error("Variable not declared in the current scope")
+              }
+            }
+            case New(tpe) =>
+              global.lookupClass(tpe.value) match {
+                case Some(cls)=>
+                  tpe.setSymbol(cls)
+                  cls.lookupMethod(meth.value) match {
+                    case Some(declaredMeth) =>
+                      meth.setSymbol(declaredMeth)
+                    case None => sys.error("Method has not been declared insied of the class.")
+                  }
+                case None => sys.error("Class has not been declared.")
+              }
+            case x @ MethodCall(obj2, meth2, args2) =>
+              recurseMethCall(x,sym).classSymbol.lookupMethod(meth.value) match {
+                    case Some(mth) => meth.setSymbol(mth)
+                    case None => sys.error("Method not found in class declaration")
+              }
+            case _ =>
+          }
+          args.foreach(a =>{
+            recurseExpr(a, sym)
+          })
         case IntLit(_) =>
         case StringLit(_) =>
         case True() =>
@@ -77,7 +247,7 @@ object NameAnalysis extends Phase[Program, Program] {
             case _ => sys.error("Identifier must be either in ClassSymbol or MethodSymbol")
           }
         case This() =>
-          expr.asInstanceOf[This].setSymbol(sym.asInstanceOf[ClassSymbol])
+          expr.asInstanceOf[This].setSymbol(sym.asInstanceOf[MethodSymbol].classSymbol)
         case Null() =>
         case New(tpe) =>
           global.lookupClass(tpe.value) match {
@@ -103,178 +273,217 @@ object NameAnalysis extends Phase[Program, Program] {
         case Println(expr) =>
           recurseExpr(expr, sym)
         case Assign(id, expr) =>
-          if(sym.asInstanceOf[MethodSymbol].params.contains(id.value))
-            sys.error("Method argument already defined")
+          sym match {
+            case x: MethodSymbol =>
+              if(x.params.contains(id.value))
+                sys.error("Method argument already defined")
+            case _ =>
+          }
           recurseExpr(id, sym)
           recurseExpr(expr, sym)
         case _ => sys.error("Unrecognized expression")
       }
     }
 
-
-    prog.classes.foreach(cls => {
-      val sym = (new ClassSymbol(cls.id.value)).setPos(cls)
-      cls.setSymbol(sym)
-      cls.id.setSymbol(sym)
-      if(global.lookupClass(cls.id.value) == None) {
-        global.classes += (cls.id.value -> sym)
-      } else {
-        sys.error("Class already in global scope")
-      }
-    })
-
-    prog.classes.foreach(cls => {
-      if(cls.parent != None) {
-        var parentSym = global.lookupClass(cls.parent.getOrElse(sys.error("Class parent not found")).value)
-        parentSym match {
-          case Some(x) =>
-            cls.parent.getOrElse(sys.error("Class parent not found")).setSymbol(x)
-            cls.getSymbol.parent = Some(x)
-          case None =>
-            sys.error("Parent class not found")
-        }
-        var parSym = cls.getSymbol.getParentSym
-        while(parSym != null) {
-          if(parSym == cls.getSymbol)
-            sys.error("Found cycle in the class graph")
-          else
-            parSym = parSym.getParentSym
-        }
-      }
-    })
-
-    prog.classes.foreach(cls => {
-      cls.vars.foreach(v => {
-        val sym = (new VariableSymbol(v.id.value)).setPos(v)
-        v.setSymbol(sym)
-        v.id.setSymbol(sym)
-        if(cls.getSymbol.lookupVar(v.id.value) == None){
-          v.expr match {
-            case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-              cls.getSymbol.members += (v.getSymbol.name -> v.getSymbol)
-              recurseExpr(v.expr, cls.getSymbol)
-            case _ => sys.error("Wrong variable expression")
-          }
+    def symClasses(): Unit = {
+      prog.classes.foreach(cls => {
+        val sym = (new ClassSymbol(cls.id.value)).setPos(cls)
+        val clsType = new TAnyRef(sym)
+        cls.setSymbol(sym)
+        cls.id.setSymbol(sym)
+        sym.setType(clsType)
+        if(global.lookupClass(cls.id.value) == None) {
+          global.classes += (cls.id.value -> sym)
         } else {
-          sys.error("Variable already declared in class scope")
+          sys.error("Class already in global scope")
         }
       })
 
-      cls.methods.foreach(m => {
-        val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
-        m.setSymbol(sym)
-        m.id.setSymbol(sym)
-        if(m.overrides == true && cls.parent == None)
-          sys.error("Method can not override if there is not parent class")
-        if(m.overrides == false || (m.overrides == true && cls.parent != None)) {
-          cls.getSymbol.lookupMethod(m.id.value) match {
-            case Some(x) => sys.error("Method already exists in current class scope")
-            case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+    }
+
+    def symClassParents(): Unit = {
+      prog.classes.foreach(cls => {
+        if(cls.parent != None) {
+          var parentSym = global.lookupClass(cls.parent.getOrElse(sys.error("Class parent not found")).value)
+          parentSym match {
+            case Some(x) =>
+              cls.parent.getOrElse(sys.error("Class parent not found")).setSymbol(x)
+              cls.getSymbol.parent = Some(x)
+            case None =>
+              sys.error("Parent class not found")
           }
-          cls.parent match {
-            case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
-              case Some(x) => sys.error("Method already exists in current class scope")
-              case None =>
-                cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
-            }
-            case None => ()
+          var parSym = cls.getSymbol.getParentSym
+          while(parSym != null) {
+            if(parSym == cls.getSymbol)
+              sys.error("Found cycle in the class graph")
+            else
+              parSym = parSym.getParentSym
           }
         }
+      })
 
-        m.getSymbol.argList = List[VariableSymbol]()
-        m.args.foreach(arg => {
-          val sym = (new VariableSymbol(arg.id.value)).setPos(arg)
-          arg.setSymbol(sym)
-          arg.id.setSymbol(sym)
-          if(!m.getSymbol.params.contains(arg.id.value)) {
-            m.getSymbol.params = m.getSymbol.params + (arg.id.value -> sym)
-            m.getSymbol.argList = m.getSymbol.argList :+ sym
-          } else {
-            sys.error("Arg already declared in the scope of method")
-          }
-        })
+    }
 
-        m.vars.foreach(v => {
+    def symClassVarsAndMethods(): Unit = {
+      prog.classes.foreach(cls => {
+        cls.vars.foreach(v => {
+          val varType = getType(v.tpe)
           val sym = (new VariableSymbol(v.id.value)).setPos(v)
+          sym.setType(varType)
           v.setSymbol(sym)
           v.id.setSymbol(sym)
-
-          if(m.overrides) {
-            var par = cls.getSymbol.parent
-            while(par != None) {
-              par.get.lookupVar(v.id.value) match {
-                case Some(vprime) => sys.error("Variable already declared in parent class")
-                case None => par = par.get.parent
-              }
-            }
-
+          if(cls.getSymbol.lookupVar(v.id.value) == None){
             v.expr match {
               case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
+                cls.getSymbol.members += (v.getSymbol.name -> v.getSymbol)
                 recurseExpr(v.expr, cls.getSymbol)
-                m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
               case _ => sys.error("Wrong variable expression")
             }
           } else {
-            if(m.getSymbol.members.contains(v.id.value)) {
-              sys.error("Var already declared in method")
+            sys.error("Variable already declared in class scope")
+          }
+        })
+
+        cls.methods.foreach(m => {
+          val methType = getType(m.retType)
+          val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
+          sym.setType(methType)
+          m.setSymbol(sym)
+          m.id.setSymbol(sym)
+          if(m.overrides == true && cls.parent == None)
+            sys.error("Method can not override if there is not parent class")
+          if(m.overrides == false || (m.overrides == true && cls.parent != None)) {
+            cls.getSymbol.lookupMethod(m.id.value) match {
+              case Some(x) => sys.error("Method already exists in current class scope")
+              case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+            }
+            cls.parent match {
+              case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
+                case Some(x) => sys.error("Method already exists in current class scope")
+                case None =>
+                  cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+              }
+              case None => ()
+            }
+          }
+
+          m.getSymbol.argList = List[VariableSymbol]()
+          m.args.foreach(arg => {
+            val argType = getType(arg.tpe)
+            val sym = (new VariableSymbol(arg.id.value)).setPos(arg)
+            sym.setType(argType)
+            arg.setSymbol(sym)
+            arg.id.setSymbol(sym)
+            if(!m.getSymbol.params.contains(arg.id.value)) {
+              m.getSymbol.params = m.getSymbol.params + (arg.id.value -> sym)
+              m.getSymbol.argList = m.getSymbol.argList :+ sym
             } else {
+              sys.error("Arg already declared in the scope of method")
+            }
+          })
+
+          m.vars.foreach(v => {
+            val varType = getType(v.tpe)
+            val sym = (new VariableSymbol(v.id.value)).setPos(v)
+            sym.setType(varType)
+            v.setSymbol(sym)
+            v.id.setSymbol(sym)
+
+            if(m.overrides) {
+              var par = cls.getSymbol.parent
+              while(par != None) {
+                par.get.lookupVar(v.id.value) match {
+                  case Some(vprime) => sys.error("Variable already declared in parent class")
+                  case None => par = par.get.parent
+                }
+              }
+
               v.expr match {
                 case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
                   recurseExpr(v.expr, cls.getSymbol)
                   m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
                 case _ => sys.error("Wrong variable expression")
               }
+            } else {
+              if(m.getSymbol.members.contains(v.id.value)) {
+                sys.error("Var already declared in method")
+              } else {
+                v.expr match {
+                  case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
+                    recurseExpr(v.expr, cls.getSymbol)
+                    m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
+                  case _ => sys.error("Wrong variable expression")
+                }
+              }
+            }
+
+          })
+
+        })
+      })
+
+    }
+
+
+    def symMethodOverrides(): Unit = {
+
+      prog.classes.foreach(cls => {
+        cls.methods.foreach(m => {
+          if(m.overrides && cls.getSymbol.parent == None)
+            sys.error("Method overrides but parent is not defined")
+          if(m.overrides) {
+            cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
+              case x @ Some(overriddenMethod) =>
+                if(m.getSymbol.params.size == overriddenMethod.params.size)
+                  m.getSymbol.overridden = x
+                else
+                  sys.error("Method override does not have the same number of params or same type")
+              case None => sys.error("No overriden method, however declared as overrides.")
             }
           }
-
         })
-
+        cls.methods.foreach(m => {
+          m.exprs.foreach(e => {
+            recurseExpr(e, m.getSymbol)
+          })
+          recurseExpr(m.retExpr, m.getSymbol)
+        })
       })
-    })
 
-    prog.classes.foreach(cls => {
-      cls.methods.foreach(m => {
-        if(m.overrides && cls.getSymbol.parent == None)
-          sys.error("Method overrides but parent is not defined")
-        if(m.overrides) {
-          cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
-            case x @ Some(overriddenMethod) =>
-              // Should probably check each parameter?
-              m.getSymbol.overridden = x
-            case None => sys.error("No overriden method, however declared as overrides.")
-          }
+    }
+
+    def symMain(): Unit = {
+      val mainSym = (new ClassSymbol(prog.main.obj.value)).setPos(prog.main)
+      global.mainClass = mainSym
+      prog.main.setSymbol(mainSym)
+      prog.main.obj.setSymbol(mainSym)
+      prog.main.vars.foreach(v => {
+        val varType = getType(v.tpe)
+        val sym = (new VariableSymbol(v.id.value)).setPos(v)
+        sym.setType(varType)
+        v.setSymbol(sym)
+        v.id.setSymbol(sym)
+        if(global.mainClass.lookupVar(v.id.value) != None) {
+          sys.error("Variable already declared in the main class scope.")
+        }
+        v.expr match {
+          case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
+            recurseExpr(v.expr, global.mainClass)
+            global.mainClass.members = global.mainClass.members + (v.id.value -> sym)
+          case _ => sys.error("Wrong variable expression")
         }
       })
-      cls.methods.foreach(m => {
-        m.exprs.foreach(e => {
-          recurseExpr(e, m.getSymbol)
-        })
-        recurseExpr(m.retExpr, m.getSymbol)
+      prog.main.exprs.foreach(e => {
+        recurseExpr(e, global.mainClass)
       })
-    })
 
+    }
 
-    val mainSym = (new ClassSymbol(prog.main.obj.value)).setPos(prog.main)
-    global.mainClass = mainSym
-    prog.main.setSymbol(mainSym)
-    prog.main.obj.setSymbol(mainSym)
-    prog.main.vars.foreach(v => {
-      val sym = (new VariableSymbol(v.id.value)).setPos(v)
-      v.setSymbol(sym)
-      v.id.setSymbol(sym)
-      if(global.mainClass.lookupVar(v.id.value) != None) {
-        sys.error("Variable already declared in the main class scope.")
-      }
-      v.expr match {
-        case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-          recurseExpr(v.expr, global.mainClass)
-          global.mainClass.members = global.mainClass.members + (v.id.value -> sym)
-        case _ => sys.error("Wrong variable expression")
-      }
-    })
-    prog.main.exprs.foreach(e => {
-      recurseExpr(e, global.mainClass)
-    })
+    symClasses()
+    symClassParents()
+    symClassVarsAndMethods()
+    symMethodOverrides()
+    symMain()
 
     prog
   }

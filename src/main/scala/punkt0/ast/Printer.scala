@@ -39,14 +39,14 @@ object Printer {
           method.foreach(e => rtn = rtn + recursiveApply(e))
           rtn + "}\n"
         case VarDecl(tpe, id, expr) =>
-          "var " + id.value.toString + ": " + recursiveApply(tpe) + " = " + recursiveApply(expr) + ";\n"
+          "var " + recursiveApply(id) + ": " + recursiveApply(tpe) + " = " + recursiveApply(expr) + ";\n"
         case MethodDecl(overrides, retType, id, args, vars, expr, retExpr) =>
           var rtn = ""
           if(overrides)
             rtn = rtn + "override def "
           else
             rtn = rtn + "def "
-          rtn = rtn + id.value + "("
+          rtn = rtn + recursiveApply(id) + "("
           if(args.size > 0) {            
             var lastArg = args.last
             var argsTemp = args
@@ -60,7 +60,7 @@ object Printer {
           vars.foreach(v => rtn = rtn + recursiveApply(v))
           expr.foreach(e => rtn = rtn + recursiveApply(e) + "; \n")
           rtn = rtn + recursiveApply(retExpr)
-          rtn + "}\n"
+          rtn + "\n}\n"
         case BooleanType() => "Boolean"
         case Formal(tpe, id) =>
           id.value.toString + ": " + recursiveApply(tpe)
@@ -91,10 +91,17 @@ object Printer {
         case True() => " true "
         case False() => " false "
         case x @ Identifier(value) =>
-          println(value)
-          value.toString + "#"  + x.getSymbol.id
+          try{
+            value.toString + "#"  + x.getSymbol.id
+          } catch {
+            case _: Throwable => value.toString + "#??"
+          }
         case x @ This() =>
-          " this#"  + x.getSymbol.id
+          try {
+            " this#"  + x.getSymbol.id
+          } catch {
+            case _: Throwable => " this#??"
+          }
         case Null() => " null "
         case New(tpe) => "new " + recursiveApply(tpe) + "()"
         case Not(expr) => "!" + recursiveApply(expr)
@@ -122,7 +129,7 @@ object Printer {
         case Println(expr) =>
           "println(" + recursiveApply(expr) + ")"
         case Assign(id, expr) =>
-          id.value.toString + " = " + recursiveApply(expr)
+          recursiveApply(id) + " = " + recursiveApply(expr)
         case _ =>
           "WRONG"
       }
