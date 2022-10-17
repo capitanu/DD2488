@@ -39,8 +39,9 @@ object TypeChecking extends Phase[Program, Program] {
       case UnitType() => typeCheckExpr(v.expr, TUnit)
       case Identifier(value) =>
         typeCheckExpr(v.expr)
-        if(!v.expr.getType.isSubTypeOf(v.tpe.getType))
+        if(!v.expr.getType.isSubTypeOf(v.tpe.getType)) {
           sys.error("Declared type and actual type do not match")
+        }
         TUnit
       case _ => sys.error("No valid type for the variable")
     }
@@ -156,8 +157,13 @@ object TypeChecking extends Phase[Program, Program] {
                   expr.setType(ee.getType)
                   ee.getType
                 case (TAnyRef(x), TAnyRef(y)) =>
-                  //Fix inheritance minimum match
-                  sys.error("Needs implementation")
+                  if(x == y) {
+                    expr.setType(thn.getType)
+                    thn.getType
+                  }
+                  else {
+                    sys.error("Needs implementation")
+                  }
                 case (x, y) =>
                   if (x == y) {
                     expr.setType(x)

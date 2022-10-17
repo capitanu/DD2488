@@ -62,7 +62,7 @@ object Types {
   }
   case object TNull extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = tpe match {
-      case TNull => true
+      case TNull | TAnyRef(_) => true
       case _ => false
     }
     override def toString = "Null"
