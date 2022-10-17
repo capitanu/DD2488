@@ -233,8 +233,6 @@ object TypeChecking extends Phase[Program, Program] {
           typeCheckExpr(m.retExpr)
           setType(m.retType)
 
-          println(m.retType.getType)
-          println(m.retExpr.getType)
           if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
             sys.error("Return type declared and return type found do not match")
 

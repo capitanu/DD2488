@@ -92,10 +92,10 @@ object Main {
       println(pp)
 
     if(ctx.doSymbolIds)
-      print(ppSymIds)
+      println(ppSymIds)
 
     if(ctx.doASTPlus)
-      print(astPlus)
+      println(astPlus)
 
 
     Reporter.terminateIfErrors()

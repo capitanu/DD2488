@@ -84,7 +84,6 @@ object TypedASTPrinter {
         "False("
       case id @ Identifier(value)=>
         doIndent = false
-        print(value)
         "Identifier(" + value + "#" + id.getSymbol.id
       case This()=>
         doIndent = false
