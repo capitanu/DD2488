@@ -352,18 +352,18 @@ object NameAnalysis extends Phase[Program, Program] {
           m.id.setSymbol(sym)
           if(m.overrides == true && cls.parent == None)
             sys.error("Method can not override if there is not parent class")
-          if(m.overrides == false || (m.overrides == true && cls.parent != None)) {
+          if(m.overrides == false)
             cls.getSymbol.lookupMethod(m.id.value) match {
-              case Some(x) => sys.error("Method already exists in current class scope")
+              case Some(x) => sys.error("Method " + m.id.value + " already exists in current class " + cls.id.value)
               case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
             }
+          if(m.overrides == true && cls.parent != None) {
             cls.parent match {
               case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
-                case Some(x) => sys.error("Method already exists in current class scope")
-                case None =>
-                  cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+                case Some(x) => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+                case None => sys.error("Method " + m.id.value +" already exists in current class scope")
               }
-              case None => ()
+              case None => sys.error("No parent could be found, however parent is not None")
             }
           }
 
