@@ -23,8 +23,30 @@ class DrunkPirate {
 	}
 	else {
 	  if(number ==  1 ) "1 bottle" else number + " bottles"
-	}
+	} ;
+	
+	if(true) {
+	  new Test4()
+	} else {
+	  new Test1()
+	};
+	"test"
   }
+}
+
+class Test1 extends Test2 {
+}
+
+class Test2 extends Test3{
+
+}
+
+class Test3 {
+
+}
+
+class Test4 extends Test3 {
+
 }
 
 object Main extends App {

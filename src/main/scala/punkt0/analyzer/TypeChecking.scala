@@ -162,7 +162,27 @@ object TypeChecking extends Phase[Program, Program] {
                     thn.getType
                   }
                   else {
-                    sys.error("Needs implementation")
+                    var thenClassSym: ClassSymbol = null
+                    var elseClassSym: ClassSymbol = null
+                    prog.classes.foreach(c => {
+                      if(c.id.value == ee.getType.toString())
+                        elseClassSym = c.getSymbol
+                      if(c.id.value == thn.getType.toString())
+                        thenClassSym = c.getSymbol
+                    })
+                    var tmpElseClassSym: ClassSymbol = elseClassSym
+                    while(thenClassSym.getParentSym != null) {
+                      while(tmpElseClassSym.getParentSym != null) {
+                        if(tmpElseClassSym.getParentSym == thenClassSym.getParentSym) {
+                          expr.setType(tmpElseClassSym.getParentSym.getType)
+                          return tmpElseClassSym.getParentSym.getType
+                        }
+                        tmpElseClassSym = tmpElseClassSym.getParentSym
+                      }
+                      tmpElseClassSym = elseClassSym
+                      thenClassSym = thenClassSym.getParentSym
+                    }
+                    sys.error("No similar parent class found")
                   }
                 case (x, y) =>
                   if (x == y) {
