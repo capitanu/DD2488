@@ -1,10 +1,3 @@
-class B extends A {
-  override def foo(): Int = {
-    value = 42;
-    value
-  }
-}
-
 class A {
   var value: Int = 0;
   def foo(): Int = {
@@ -13,6 +6,32 @@ class A {
     41
   }
 }
+
+class B extends A {
+
+  override def foo(): Int = {
+  if(true)
+    value = 42;
+    value
+  }
+}
+
+class C extends B {}
+class D extends A {}
+class E extends D {}
+class F extends E {}
+class G {
+def foo(): A = {
+if(true) {
+new F()
+} else {
+new C()
+}
+}
+}
+
+
+
 
 object Main extends App {
   println(new B().foo())
