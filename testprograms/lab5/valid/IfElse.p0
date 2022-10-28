@@ -11,6 +11,6 @@ class F extends B {}
 
 object Main extends App {
   var x : A = null;
-  if (true) println("test") else new D();
+  if (true) {println("test"); new B()} else new D();
   println("test")
 }

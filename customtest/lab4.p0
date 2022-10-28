@@ -17,16 +17,17 @@ class B extends A {
 }
 
 class C extends B {}
-class D extends A {}
+class D extends B {}
 class E extends D {}
 class F extends E {}
 class G {
 def foo(): A = {
 if(true) {
-new F()
+true
 } else {
-new C()
-}
+false
+};
+new F()
 }
 }
 

@@ -29,7 +29,7 @@ object TypeChecking extends Phase[Program, Program] {
           if(cls.id.value == value)
             t.setType(TAnyRef(cls.getSymbol))
         })
-      case _ => sys.error("No such type defined")
+      case _ => sys.error("No such type defined for " + t.toString())
     }
 
     def typeCheckVar(v: VarDecl): Type = v.tpe match {
@@ -171,25 +171,25 @@ object TypeChecking extends Phase[Program, Program] {
                         thenClassSym = c.getSymbol
                     })
                     var tmpElseClassSym: ClassSymbol = elseClassSym
-                    while(thenClassSym.getParentSym != null) {
-                      while(tmpElseClassSym.getParentSym != null) {
-                        if(tmpElseClassSym.getParentSym == thenClassSym.getParentSym) {
-                          expr.setType(tmpElseClassSym.getParentSym.getType)
-                          return tmpElseClassSym.getParentSym.getType
+                    while(thenClassSym != null) {
+                      while(tmpElseClassSym != null) {
+                        if(tmpElseClassSym == thenClassSym) {
+                          expr.setType(tmpElseClassSym.getType)
+                          return tmpElseClassSym.getType
                         }
                         tmpElseClassSym = tmpElseClassSym.getParentSym
                       }
                       tmpElseClassSym = elseClassSym
                       thenClassSym = thenClassSym.getParentSym
                     }
-                    sys.error("No similar parent class found")
+                    sys.error("No similar parent class found for " + thenClassSym.toString() + " and " + elseClassSym.toString())
                   }
                 case (x, y) =>
                   if (x == y) {
                     expr.setType(x)
                     x
                   } else {
-                    sys.error("Then and else branches don't have matching type")
+                    sys.error("Then and else branches don't have matching type: " + x + " and " + y)
                   }
 
               }
