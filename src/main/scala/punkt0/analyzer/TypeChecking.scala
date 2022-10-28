@@ -88,7 +88,7 @@ object TypeChecking extends Phase[Program, Program] {
             expr.setType(TBoolean)
             TBoolean
           } else {
-            sys.error("Types do not match")
+            sys.error("Types do not match: " + lhs.getType + " != " + rhs.getType)
           }
         case MethodCall(obj, meth, args) =>
           obj.setType(typeCheckExpr(obj))
@@ -96,7 +96,7 @@ object TypeChecking extends Phase[Program, Program] {
           args.foreach(a => {
             typeCheckExpr(a)
             if(!a.getType.isSubTypeOf(meth.getSymbol.asInstanceOf[MethodSymbol].argList(i).getType))
-              sys.error("Argument has wrong type")
+              sys.error("Argument has wrong type: " + a.getType)
             i = i + 1
           })
           expr.setType(meth.getSymbol.getType)
@@ -213,7 +213,7 @@ object TypeChecking extends Phase[Program, Program] {
           typeCheckExpr(id)
           typeCheckExpr(ex)
           if(!ex.getType.isSubTypeOf(id.getType))
-            sys.error("Invalid assign type")
+            sys.error("Invalid assign type: id " + id.getType + " and expr " + ex.getType)
           expr.setType(TUnit)
           TUnit
       }
@@ -254,7 +254,7 @@ object TypeChecking extends Phase[Program, Program] {
           setType(m.retType)
 
           if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
-            sys.error("Return type declared and return type found do not match")
+            sys.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
 
           if(m.overrides) {
             var index = 0
@@ -266,7 +266,7 @@ object TypeChecking extends Phase[Program, Program] {
             })
 
             if(!m.getSymbol.overridden.get.getType.isSubTypeOf(m.getSymbol.getType))
-              sys.error("Method return doesn't match the overridden method return type")
+              sys.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
           }
         })
 
