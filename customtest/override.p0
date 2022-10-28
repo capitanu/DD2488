@@ -1,0 +1,19 @@
+
+
+class C {
+def foo(): Unit = {
+println("I'm class C")
+}
+}
+
+class B extends C {
+
+override def foo(): Unit = {
+println("I'm class B")
+}
+
+}
+
+object Main extends App {
+  println("test")
+}

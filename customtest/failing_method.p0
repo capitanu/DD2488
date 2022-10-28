@@ -1,0 +1,23 @@
+class A {
+def bar(): B = {
+new B()
+}
+}
+
+class C {
+def foo(): A = {
+new A()
+}
+}
+
+class B {
+def gurka(): Unit = {
+println("test")
+}
+}
+
+object Main extends App {
+var c: C = new C();
+c.foo().bar().gurka();
+println("hello")
+}

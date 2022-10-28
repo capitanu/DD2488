@@ -24,30 +24,43 @@ object NameAnalysis extends Phase[Program, Program] {
       case _ => sys.error("Type does not exist")
     }
 
-    def recurseMethCall(expr: ExprTree, sym: Symbol): MethodSymbol = {
+    def recurseMethCall(expr: ExprTree, sym: Symbol): TypeTree = {
       expr match {
         case MethodCall(obj, meth, args) =>
           recurseExpr(obj, sym)
           obj match {
+            case x @ MethodCall(obj2, meth2, args2) =>
+              var y = recurseMethCall(x,sym)
+              global.lookupClass(y.getType.toString) match {
+                case Some(classFound) =>
+                  classFound.lookupMethod(meth.value) match {
+                    case Some(methodFound) =>
+                      meth.setSymbol(methodFound)
+                    case None =>
+                      sys.error("Method not found")
+                  }
+                case None =>
+                  sys.error("Class not found")
+              }
             case This() =>
               sym match {
-                case x: MethodSymbol => 
+                case x: MethodSymbol =>
                   x.classSymbol.lookupMethod(meth.value) match {
                     case Some(m) =>
                       if(m.argList.length == args.length) {
                         meth.setSymbol(m)
-                        m
+                        meth
                       }
                       else
                         sys.error("Wrong number of arguments")
                     case None => sys.error("Method not declared")
-              }
+                  }
                 case x: ClassSymbol =>
                   x.lookupMethod(meth.value) match {
                     case Some(m) =>
                       if(m.argList.length == args.length) {
                         meth.setSymbol(m)
-                        m
+                        meth
                       }
                       else
                         sys.error("Wrong number of arguments")
@@ -67,10 +80,10 @@ object NameAnalysis extends Phase[Program, Program] {
                       if(methodExists.argList.length != args.length)
                         sys.error("Method call and method declaration arg list size differs")
                       meth.setSymbol(methodExists)
-                      methodExists
+                      meth
                     case None =>
                       sys.error("Identifier not defined in the current scope")
-                      }
+                  }
                 case x: ClassSymbol =>
                   x.lookupVar(value) match {
                     case Some(v) =>
@@ -80,7 +93,7 @@ object NameAnalysis extends Phase[Program, Program] {
                       if(methodExists.argList.length != args.length)
                         sys.error("Method call and method declaration arg list size differs")
                       meth.setSymbol(methodExists)
-                      methodExists
+                      meth
                     case None =>
                       sys.error("Identifier not defined in the current scope")
                   }
@@ -94,13 +107,11 @@ object NameAnalysis extends Phase[Program, Program] {
                   cls.lookupMethod(meth.value) match {
                     case Some(declaredMeth) =>
                       meth.setSymbol(declaredMeth)
-                      declaredMeth
+                      meth
                     case None => sys.error("Method has not been declared insied of the class.")
                   }
                 case None => sys.error("Class has not been declared.")
               }
-            case x @ MethodCall(obj2, meth2, args2) =>
-              recurseMethCall(x,sym)
             case _ => sys.error("Not a valid obj for the method call")
           }
         case _ => sys.error("Expected a method call")
@@ -136,9 +147,23 @@ object NameAnalysis extends Phase[Program, Program] {
         case MethodCall(obj, meth, args) =>
           recurseExpr(obj, sym)
           obj match {
+            case x @ MethodCall(obj2, meth2, args2) =>
+              var y = recurseMethCall(x,sym)
+              global.lookupClass(y.getType.toString) match {
+                case Some(classFound) =>
+                  classFound.lookupMethod(meth.value) match {
+                    case Some(methodFound) =>
+                      meth.setSymbol(methodFound)
+                    case None =>
+                      sys.error("Method not found")
+                  }
+                case None =>
+                  sys.error("Class not found")
+              }
+
             case This() =>
               sym match {
-                case x: MethodSymbol => 
+                case x: MethodSymbol =>
                   x.classSymbol.lookupMethod(meth.value) match {
                     case Some(m) =>
                       if(m.argList.length == args.length)
@@ -146,11 +171,11 @@ object NameAnalysis extends Phase[Program, Program] {
                       else
                         sys.error("Wrong number of arguments")
                     case None => sys.error("Method not declared")
-              }
+                  }
                 case x: ClassSymbol =>
                   x.lookupMethod(meth.value) match {
                     case Some(m) =>
-                      if(m.argList.length == args.length) 
+                      if(m.argList.length == args.length)
                         meth.setSymbol(m)
                       else
                         sys.error("Wrong number of arguments")
@@ -172,7 +197,7 @@ object NameAnalysis extends Phase[Program, Program] {
                       meth.setSymbol(methodExists)
                     case None =>
                       sys.error("Identifier not defined in the current scope")
-                      }
+                  }
                 case x: ClassSymbol =>
                   x.lookupVar(value) match {
                     case Some(v) =>
@@ -199,11 +224,7 @@ object NameAnalysis extends Phase[Program, Program] {
                   }
                 case None => sys.error("Class has not been declared.")
               }
-            case x @ MethodCall(obj2, meth2, args2) =>
-              recurseMethCall(x,sym).classSymbol.lookupMethod(meth.value) match {
-                    case Some(mth) => meth.setSymbol(mth)
-                    case None => sys.error("Method not found in class declaration")
-              }
+            
             case _ =>
           }
           args.foreach(a =>{
@@ -247,7 +268,14 @@ object NameAnalysis extends Phase[Program, Program] {
             case _ => sys.error("Identifier must be either in ClassSymbol or MethodSymbol")
           }
         case This() =>
-          expr.asInstanceOf[This].setSymbol(sym.asInstanceOf[MethodSymbol].classSymbol)
+          sym match {
+            case _:MethodSymbol =>
+              expr.asInstanceOf[This].setSymbol(sym.asInstanceOf[MethodSymbol].classSymbol)
+            case _:ClassSymbol =>
+              expr.asInstanceOf[This].setSymbol(sym.asInstanceOf[ClassSymbol])
+            case _ =>
+              sys.error("This token declared outside of an expected scope")
+          }
         case Null() =>
         case New(tpe) =>
           global.lookupClass(tpe.value) match {
@@ -352,20 +380,12 @@ object NameAnalysis extends Phase[Program, Program] {
           m.id.setSymbol(sym)
           if(m.overrides == true && cls.parent == None)
             sys.error("Method can not override if there is not parent class")
+
           if(m.overrides == false)
             cls.getSymbol.lookupMethod(m.id.value) match {
               case Some(x) => sys.error("Method " + m.id.value + " already exists in current class " + cls.id.value)
               case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
             }
-          if(m.overrides == true && cls.parent != None) {
-            cls.parent match {
-              case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
-                case Some(x) => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
-                case None => sys.error("Method " + m.id.value +" already exists in current class scope")
-              }
-              case None => sys.error("No parent could be found, however parent is not None")
-            }
-          }
 
           m.getSymbol.argList = List[VariableSymbol]()
           m.args.foreach(arg => {

@@ -43,7 +43,7 @@ object Trees {
         TAnyRef(cs)
 
       case ms: MethodSymbol =>
-        sys.error("Requesting type of a method identifier.")
+        ms.getType
 
       case vs: VariableSymbol =>
         vs.getType

@@ -8,8 +8,6 @@ import Types._
 
 object TypeChecking extends Phase[Program, Program] {
 
-  /** Typechecking does not produce a value, but has the side effect of
-    * attaching types to trees and potentially outputting error messages. */
   def run(prog: Program)(ctx: Context): Program = {
 
     def helperNumeric(expr: ExprTree, lhs: ExprTree, rhs: ExprTree): Type = {
@@ -29,7 +27,9 @@ object TypeChecking extends Phase[Program, Program] {
           if(cls.id.value == value)
             t.setType(TAnyRef(cls.getSymbol))
         })
-      case _ => sys.error("No such type defined for " + t.toString())
+      case _ =>
+        Reporter.error("No such type defined for " + t.toString())
+        TError
     }
 
     def typeCheckVar(v: VarDecl): Type = v.tpe match {
@@ -43,7 +43,10 @@ object TypeChecking extends Phase[Program, Program] {
           sys.error("Declared type and actual type do not match")
         }
         TUnit
-      case _ => sys.error("No valid type for the variable")
+      case _ =>
+        Reporter.error("No valid type for the variable")
+        TError
+
     }
 
     def typeCheckExpr(expr: ExprTree, expected: Type*): Type = {
@@ -88,15 +91,20 @@ object TypeChecking extends Phase[Program, Program] {
             expr.setType(TBoolean)
             TBoolean
           } else {
-            sys.error("Types do not match: " + lhs.getType + " != " + rhs.getType)
+            Reporter.error("Types do not match: " + lhs.getType + " != " + rhs.getType)
+            expr.setType(TError)
+            TError
           }
         case MethodCall(obj, meth, args) =>
           obj.setType(typeCheckExpr(obj))
           var i: Int = 0
           args.foreach(a => {
             typeCheckExpr(a)
-            if(!a.getType.isSubTypeOf(meth.getSymbol.asInstanceOf[MethodSymbol].argList(i).getType))
-              sys.error("Argument has wrong type: " + a.getType)
+            if(!a.getType.isSubTypeOf(meth.getSymbol.asInstanceOf[MethodSymbol].argList(i).getType)){
+              Reporter.error("Argument has wrong type: " + a.getType)
+              expr.setType(TError)
+              return TError
+            }
             i = i + 1
           })
           expr.setType(meth.getSymbol.getType)
@@ -147,13 +155,7 @@ object TypeChecking extends Phase[Program, Program] {
                 case (TAnyRef(_), TNull) =>
                   expr.setType(thn.getType)
                   thn.getType
-                case (TAnyRef(_), TUnit) =>
-                  expr.setType(thn.getType)
-                  thn.getType
                 case (TNull, TAnyRef(_)) =>
-                  expr.setType(ee.getType)
-                  ee.getType
-                case (TUnit, TAnyRef(_)) =>
                   expr.setType(ee.getType)
                   ee.getType
                 case (TAnyRef(x), TAnyRef(y)) =>
@@ -190,9 +192,10 @@ object TypeChecking extends Phase[Program, Program] {
                     expr.setType(x)
                     x
                   } else {
-                    sys.error("Then and else branches don't have matching type: " + x + " and " + y)
+                    Reporter.error("Then and else branches don't have matching type: " + x + " and " + y)
+                    expr.setType(TError)
+                    TError
                   }
-
               }
 
             case None =>
@@ -213,12 +216,15 @@ object TypeChecking extends Phase[Program, Program] {
         case Assign(id, ex) =>
           typeCheckExpr(id)
           typeCheckExpr(ex)
-          if(!ex.getType.isSubTypeOf(id.getType))
-            sys.error("Invalid assign type: id " + id.getType + " and expr " + ex.getType)
-          expr.setType(TUnit)
-          TUnit
+          if(!ex.getType.isSubTypeOf(id.getType)) {
+            Reporter.error("Invalid assign type: id " + id.getType + " and expr " + ex.getType)
+            expr.setType(TError)
+            TError
+          } else {
+            expr.setType(TUnit)
+            TUnit
+          }
       }
-
 
       if (expected.isEmpty) {
         tpe
@@ -255,19 +261,19 @@ object TypeChecking extends Phase[Program, Program] {
           setType(m.retType)
 
           if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
-            sys.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
+            Reporter.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
 
           if(m.overrides) {
             var index = 0
             m.args.foreach(a => {
               setType(a.tpe)
               if(!a.tpe.getType.isSubTypeOf(m.getSymbol.overridden.get.argList(index).getType))
-                sys.error("Arg list pattern not matching")
+                Reporter.error("Arg list pattern not matching")
               index += 1
             })
 
             if(!m.getSymbol.overridden.get.getType.isSubTypeOf(m.getSymbol.getType))
-              sys.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
+              Reporter.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
           }
         })
 
@@ -286,7 +292,7 @@ object TypeChecking extends Phase[Program, Program] {
       })
 
       if(prog.main.parent.value != "App")
-        sys.error("Main should extend from App")
+        Reporter.error("Main should extend from App")
     }
 
     def typeCheckProg(): Unit = {

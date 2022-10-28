@@ -1,0 +1,37 @@
+class A extends B {}
+class B extends C {
+def bar(): String = {
+"b"
+}
+}
+
+class C {
+var x: String = "c";
+def foo(): String = {
+x
+}
+}
+
+class D {
+def gurka(x: Int): C = {
+if(x == 0)
+new C()
+else
+new A()
+}
+}
+
+object Main extends App {
+var b: B = new B();
+var c: C = new C();
+var d: D = new D();
+if(5 == 5)
+b
+else
+c;
+
+d.gurka(1).foo();
+
+
+println("test")
+}

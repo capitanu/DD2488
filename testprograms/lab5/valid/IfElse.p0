@@ -1,18 +1,20 @@
-class A {
+class A extends B {}
+class B extends C {
+def bar(): String = {
+"b"
+}
 }
 
-class B extends A {}
-class C extends F {}
+class C {
+def foo(): String = {
+"I'm c"
+}
+}
 
-class D extends E {}
-class E extends F {}
-
-class F extends B {}
-
-class T {}
+class D {
+}
 
 object Main extends App {
-  var x : A = null;
-  if (true) {println("test"); new B()} else new T();
-  println("test")
+
+println("test")
 }
