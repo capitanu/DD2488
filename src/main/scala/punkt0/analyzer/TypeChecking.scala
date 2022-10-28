@@ -182,7 +182,8 @@ object TypeChecking extends Phase[Program, Program] {
                       tmpElseClassSym = elseClassSym
                       thenClassSym = thenClassSym.getParentSym
                     }
-                    sys.error("No similar parent class found for " + thenClassSym.toString() + " and " + elseClassSym.toString())
+                    expr.setType(anyRef)
+                    anyRef
                   }
                 case (x, y) =>
                   if (x == y) {

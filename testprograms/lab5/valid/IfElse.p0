@@ -9,8 +9,10 @@ class E extends F {}
 
 class F extends B {}
 
+class T {}
+
 object Main extends App {
   var x : A = null;
-  if (true) {println("test"); new B()};
+  if (true) {println("test"); new B()} else new T();
   println("test")
 }
