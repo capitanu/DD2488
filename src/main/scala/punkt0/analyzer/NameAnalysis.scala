@@ -224,7 +224,7 @@ object NameAnalysis extends Phase[Program, Program] {
                   }
                 case None => sys.error("Class has not been declared.")
               }
-            
+              
             case _ =>
           }
           args.foreach(a =>{
@@ -369,81 +369,54 @@ object NameAnalysis extends Phase[Program, Program] {
         })
 
         cls.methods.foreach(m => {
-          val methType = getType(m.retType)
-          val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
-          sym.setType(methType)
-          m.setSymbol(sym)
-          m.id.setSymbol(sym)
-          if(m.overrides == true && cls.parent == None)
-            sys.error("Method can not override if there is not parent class")
+          if(m.overrides == false) {
 
-          if(m.overrides == false)
+            val methType = getType(m.retType)
+            val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
+            sym.setType(methType)
+            m.setSymbol(sym)
+            m.id.setSymbol(sym)
             cls.getSymbol.lookupMethod(m.id.value) match {
               case Some(x) => sys.error("Method " + m.id.value + " already exists in current class " + cls.id.value)
               case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
             }
-
-          if(m.overrides == true && cls.parent != None) {
-            cls.parent match {
-              case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
-                case Some(x) => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
-                case None => sys.error("Method " + m.id.value +" already exists in current class scope")
+            
+            m.getSymbol.argList = List[VariableSymbol]()
+            m.args.foreach(arg => {
+              val argType = getType(arg.tpe)
+              val sym = (new VariableSymbol(arg.id.value)).setPos(arg)
+              sym.setType(argType)
+              arg.setSymbol(sym)
+              arg.id.setSymbol(sym)
+              if(!m.getSymbol.params.contains(arg.id.value)) {
+                m.getSymbol.params = m.getSymbol.params + (arg.id.value -> sym)
+                m.getSymbol.argList = m.getSymbol.argList :+ sym
+              } else {
+                sys.error("Arg already declared in the scope of method")
               }
-              case None => sys.error("No parent could be found, however parent is not None")
-            }
-          }
-          
-          m.getSymbol.argList = List[VariableSymbol]()
-          m.args.foreach(arg => {
-            val argType = getType(arg.tpe)
-            val sym = (new VariableSymbol(arg.id.value)).setPos(arg)
-            sym.setType(argType)
-            arg.setSymbol(sym)
-            arg.id.setSymbol(sym)
-            if(!m.getSymbol.params.contains(arg.id.value)) {
-              m.getSymbol.params = m.getSymbol.params + (arg.id.value -> sym)
-              m.getSymbol.argList = m.getSymbol.argList :+ sym
-            } else {
-              sys.error("Arg already declared in the scope of method")
-            }
-          })
-
-          m.vars.foreach(v => {
-
-
-            m.getSymbol.argList.foreach(a => {
-              if(a.name == v.id.value)
-                sys.error("Shadowing not allowed")
             })
 
-            val varType = getType(v.tpe)
-            val sym = (new VariableSymbol(v.id.value)).setPos(v)
-            sym.setType(varType)
-            v.setSymbol(sym)
-            v.id.setSymbol(sym)
+            m.vars.foreach(v => {
 
-            if(m.overrides) {
-              var par = cls.getSymbol.parent
-              while(par != None) {
-                par.get.lookupVar(v.id.value) match {
-                  case Some(vprime) => sys.error("Variable already declared in parent class")
-                  case None => par = par.get.parent
-                }
-              }
+              m.getSymbol.argList.foreach(a => {
+                if(a.name == v.id.value)
+                  sys.error("Shadowing not allowed")
+              })
 
-              recurseExpr(v.expr, cls.getSymbol)
-              m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
-            } else {
+              val varType = getType(v.tpe)
+              val sym = (new VariableSymbol(v.id.value)).setPos(v)
+              sym.setType(varType)
+              v.setSymbol(sym)
+              v.id.setSymbol(sym)
+
               if(m.getSymbol.members.contains(v.id.value)) {
                 sys.error("Var already declared in method")
               } else {
                 recurseExpr(v.expr, cls.getSymbol)
                 m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
               }
-            }
-
-          })
-
+            })
+          }
         })
       })
 
@@ -454,19 +427,78 @@ object NameAnalysis extends Phase[Program, Program] {
 
       prog.classes.foreach(cls => {
         cls.methods.foreach(m => {
+
           if(m.overrides && cls.getSymbol.parent == None)
             sys.error("Method overrides but parent is not defined")
+
           if(m.overrides) {
+
             cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
               case x @ Some(overriddenMethod) =>
-                if(m.getSymbol.params.size == overriddenMethod.params.size)
-                  m.getSymbol.overridden = x
-                else
+
+                val methType = getType(m.retType)
+                val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
+
+                sym.setType(methType)
+                m.setSymbol(sym)
+                m.id.setSymbol(sym)
+
+                if(m.getSymbol.params.size != overriddenMethod.params.size)
                   sys.error("Method override does not have the same number of params or same type")
+
+                cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> m.getSymbol)
+                m.getSymbol.overridden = x
+                
+                m.getSymbol.argList = List[VariableSymbol]()
+                m.args.foreach(arg => {
+                  val argType = getType(arg.tpe)
+                  val sym = (new VariableSymbol(arg.id.value)).setPos(arg)
+                  sym.setType(argType)
+                  arg.setSymbol(sym)
+                  arg.id.setSymbol(sym)
+                  if(!m.getSymbol.params.contains(arg.id.value)) {
+                    m.getSymbol.params = m.getSymbol.params + (arg.id.value -> sym)
+                    m.getSymbol.argList = m.getSymbol.argList :+ sym
+                  } else {
+                    sys.error("Arg already declared in the scope of method")
+                  }
+                })
+
+                m.vars.foreach(v => {
+
+                  m.getSymbol.argList.foreach(a => {
+                    if(a.name == v.id.value)
+                      sys.error("Shadowing not allowed")
+                  })
+
+                  val varType = getType(v.tpe)
+                  val sym = (new VariableSymbol(v.id.value)).setPos(v)
+                  sym.setType(varType)
+                  v.setSymbol(sym)
+                  v.id.setSymbol(sym)
+
+                  var par = cls.getSymbol.parent
+                  while(par != None) {
+                    par.get.lookupVar(v.id.value) match {
+                      case Some(vprime) => sys.error("Variable already declared in parent class")
+                      case None => par = par.get.parent
+                    }
+                  }
+
+                  recurseExpr(v.expr, cls.getSymbol)
+                  m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
+                })
+
+
+
               case None => sys.error("No overriden method, however declared as overrides.")
             }
           }
         })
+
+
+
+
         cls.methods.foreach(m => {
           m.exprs.foreach(e => {
             recurseExpr(e, m.getSymbol)
