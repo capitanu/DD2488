@@ -427,24 +427,23 @@ object NameAnalysis extends Phase[Program, Program] {
 
       prog.classes.foreach(cls => {
         cls.methods.foreach(m => {
-
           if(m.overrides && cls.getSymbol.parent == None)
             sys.error("Method overrides but parent is not defined")
 
           if(m.overrides) {
-
             cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
               case x @ Some(overriddenMethod) =>
 
                 val methType = getType(m.retType)
+
+                if(methType != overriddenMethod.getType)
+                  sys.error("Method override does not have the same type as the overriden method")
+
                 val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
 
                 sym.setType(methType)
                 m.setSymbol(sym)
                 m.id.setSymbol(sym)
-
-                if(m.getSymbol.params.size != overriddenMethod.params.size)
-                  sys.error("Method override does not have the same number of params or same type")
 
                 cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> m.getSymbol)
                 m.getSymbol.overridden = x
@@ -463,6 +462,11 @@ object NameAnalysis extends Phase[Program, Program] {
                     sys.error("Arg already declared in the scope of method")
                   }
                 })
+
+                if(m.getSymbol.params.size != overriddenMethod.params.size)
+                  sys.error("Method override does not have the same number of params")
+
+
 
                 m.vars.foreach(v => {
 
