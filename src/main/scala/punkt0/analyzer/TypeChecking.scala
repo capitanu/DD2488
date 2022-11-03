@@ -40,7 +40,7 @@ object TypeChecking extends Phase[Program, Program] {
       case Identifier(value) =>
         typeCheckExpr(v.expr)
         if(!v.expr.getType.isSubTypeOf(v.tpe.getType)) {
-          sys.error("Declared type and actual type do not match")
+          Reporter.error("Declared type and actual type do not match")
         }
         TUnit
       case _ =>
