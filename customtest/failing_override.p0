@@ -17,9 +17,10 @@ class F extends C {}
 object Main extends App {
 var b: B = new B();
 var c: C = new C();
-if(5 == 5)
-c.foo()
+var x: C = if(5 == 5)
+c
 else
-b.foo();
+b;
+x.foo();
 println("test")
 }

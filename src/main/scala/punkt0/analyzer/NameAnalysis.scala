@@ -495,12 +495,8 @@ object NameAnalysis extends Phase[Program, Program] {
         if(global.mainClass.lookupVar(v.id.value) != None) {
           sys.error("Variable already declared in the main class scope.")
         }
-        v.expr match {
-          case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-            recurseExpr(v.expr, global.mainClass)
-            global.mainClass.members = global.mainClass.members + (v.id.value -> sym)
-          case _ => sys.error("Wrong variable expression")
-        }
+        recurseExpr(v.expr, global.mainClass)
+        global.mainClass.members = global.mainClass.members + (v.id.value -> sym)
       })
       prog.main.exprs.foreach(e => {
         recurseExpr(e, global.mainClass)
