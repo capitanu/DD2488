@@ -361,12 +361,8 @@ object NameAnalysis extends Phase[Program, Program] {
           v.setSymbol(sym)
           v.id.setSymbol(sym)
           if(cls.getSymbol.lookupVar(v.id.value) == None){
-            v.expr match {
-              case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-                cls.getSymbol.members += (v.getSymbol.name -> v.getSymbol)
-                recurseExpr(v.expr, cls.getSymbol)
-              case _ => sys.error("Wrong variable expression")
-            }
+            cls.getSymbol.members += (v.getSymbol.name -> v.getSymbol)
+            recurseExpr(v.expr, cls.getSymbol)
           } else {
             sys.error("Variable already declared in class scope")
           }
@@ -435,22 +431,14 @@ object NameAnalysis extends Phase[Program, Program] {
                 }
               }
 
-              v.expr match {
-                case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-                  recurseExpr(v.expr, cls.getSymbol)
-                  m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
-                case _ => sys.error("Wrong variable expression")
-              }
+              recurseExpr(v.expr, cls.getSymbol)
+              m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
             } else {
               if(m.getSymbol.members.contains(v.id.value)) {
                 sys.error("Var already declared in method")
               } else {
-                v.expr match {
-                  case IntLit(_) | StringLit(_) | New(_) | True() | False() | Null() =>
-                    recurseExpr(v.expr, cls.getSymbol)
-                    m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
-                  case _ => sys.error("Wrong variable expression")
-                }
+                recurseExpr(v.expr, cls.getSymbol)
+                m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
               }
             }
 
