@@ -387,6 +387,16 @@ object NameAnalysis extends Phase[Program, Program] {
               case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
             }
 
+          if(m.overrides == true && cls.parent != None) {
+            cls.parent match {
+              case Some(par) => par.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(m.id.value) match {
+                case Some(x) => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
+                case None => sys.error("Method " + m.id.value +" already exists in current class scope")
+              }
+              case None => sys.error("No parent could be found, however parent is not None")
+            }
+          }
+          
           m.getSymbol.argList = List[VariableSymbol]()
           m.args.foreach(arg => {
             val argType = getType(arg.tpe)
@@ -461,10 +471,8 @@ object NameAnalysis extends Phase[Program, Program] {
           if(m.overrides) {
             cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
               case x @ Some(overriddenMethod) =>
-                if(m.getSymbol.params.size == overriddenMethod.params.size) {
+                if(m.getSymbol.params.size == overriddenMethod.params.size)
                   m.getSymbol.overridden = x
-                  cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> m.getSymbol)
-                }
                 else
                   sys.error("Method override does not have the same number of params or same type")
               case None => sys.error("No overriden method, however declared as overrides.")
