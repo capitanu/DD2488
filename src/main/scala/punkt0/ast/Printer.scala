@@ -63,7 +63,7 @@ object Printer {
           rtn + "\n}\n"
         case BooleanType() => "Boolean"
         case Formal(tpe, id) =>
-          id.value.toString + ": " + recursiveApply(tpe)
+          recursiveApply(id) + ": " + recursiveApply(tpe)
         case IntType() => "Int"
         case StringType() => "String"
         case UnitType() => "Unit"
