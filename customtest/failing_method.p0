@@ -4,9 +4,12 @@ new B()
 }
 }
 
+class A2 extends A{
+}
+
 class C {
 def foo(): A = {
-new A()
+new A2()
 }
 }
 
@@ -16,8 +19,15 @@ println("test")
 }
 }
 
-object Main extends App {
+class D extends C {
+override def foo(): A2 = {
 var c: C = new C();
-c.foo().bar().gurka();
+c.foo()
+}
+}
+
+object Main extends App {
+var d: D = new D();
+d.foo().bar().gurka();
 println("hello")
 }

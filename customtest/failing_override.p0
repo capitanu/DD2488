@@ -1,8 +1,5 @@
 class A extends B {}
 class B extends C {
-def foo(): B = {
-new B()
-}
 }
 class C {
 def foo(): C = {
@@ -13,9 +10,6 @@ new C()
 object Main extends App {
 var b: B = new B();
 var c: C = new C();
-if(5 == 5)
-c.foo()
-else
 b.foo();
 println("test")
 }
