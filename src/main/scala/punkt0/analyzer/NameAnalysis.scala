@@ -436,8 +436,8 @@ object NameAnalysis extends Phase[Program, Program] {
 
                 val methType = getType(m.retType)
 
-                if(methType != overriddenMethod.getType)
-                  sys.error("Method override does not have the same type as the overriden method")
+                // if(methType != overriddenMethod.getType)
+                //   sys.error("Method override does not have the same type as the overriden method")
 
                 val sym = (new MethodSymbol(m.id.value, cls.getSymbol)).setPos(m)
 

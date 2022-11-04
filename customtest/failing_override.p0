@@ -1,12 +1,12 @@
 class A extends B {}
 class B extends C {
-override def foo(): String = {
-"c"
+override def foo(): B = {
+new B()
 }
 }
 class C {
-def foo(): String = {
-"c"
+def foo(): C = {
+new C()
 }
 }
 

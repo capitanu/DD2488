@@ -272,7 +272,7 @@ object TypeChecking extends Phase[Program, Program] {
               index += 1
             })
 
-            if(m.getSymbol.overridden.get.getType == m.getSymbol.getType)
+            if(!m.getSymbol.overridden.get.getType.isSubTypeOf(m.getSymbol.getType))
               Reporter.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
           }
         })
