@@ -1,6 +1,6 @@
 class A extends B {}
 class B extends C {
-override def foo(): B = {
+def foo(): B = {
 new B()
 }
 }
@@ -9,10 +9,6 @@ def foo(): C = {
 new C()
 }
 }
-
-class D extends E {}
-class E extends F {}
-class F extends C {}
 
 object Main extends App {
 var b: B = new B();

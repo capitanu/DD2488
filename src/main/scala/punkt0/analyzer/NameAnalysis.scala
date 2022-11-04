@@ -427,6 +427,13 @@ object NameAnalysis extends Phase[Program, Program] {
 
       prog.classes.foreach(cls => {
         cls.methods.foreach(m => {
+          if(m.overrides == false && cls.getSymbol.parent != None) {
+            cls.getSymbol.parent.get.lookupMethod(m.id.value) match {
+              case Some(overridenMethod) =>
+                sys.error("Method overrides, but not declared to override")
+              case None =>
+            }
+          }
           if(m.overrides && cls.getSymbol.parent == None)
             sys.error("Method overrides but parent is not defined")
 
