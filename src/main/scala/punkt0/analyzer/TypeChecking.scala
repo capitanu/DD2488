@@ -260,7 +260,7 @@ object TypeChecking extends Phase[Program, Program] {
           typeCheckExpr(m.retExpr)
           setType(m.retType)
 
-          if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
+          if(m.retExpr.getType != m.retType.getType)
             Reporter.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
 
           if(m.overrides) {

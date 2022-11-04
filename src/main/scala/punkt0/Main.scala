@@ -97,7 +97,6 @@ object Main {
     if(ctx.doASTPlus)
       println(astPlus)
 
-
     Reporter.terminateIfErrors()
   }
 
