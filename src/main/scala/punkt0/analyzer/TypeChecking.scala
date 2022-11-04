@@ -107,7 +107,19 @@ object TypeChecking extends Phase[Program, Program] {
             }
             i = i + 1
           })
-          expr.setType(meth.getSymbol.getType)
+
+          try {
+            expr.setType(meth.getSymbol.getType)
+          } catch {
+            case _: Throwable =>
+              var methSym: MethodSymbol = null
+              prog.classes.foreach(c => {
+                if(c.id.value == obj.getType.toString) {
+                  meth.setSymbol(c.getSymbol.asInstanceOf[ClassSymbol].lookupMethod(meth.value).getOrElse(sys.error("No matching function found")))
+                }
+              })
+              expr.setType(meth.getSymbol.getType)
+          }
           meth.getSymbol.getType
         case IntLit(_) => expr.setType(TInt); TInt
         case StringLit(_) => expr.setType(TString); TString
@@ -128,9 +140,9 @@ object TypeChecking extends Phase[Program, Program] {
           typeCheckExpr(tpe, anyRef)
           expr.setType(tpe.asInstanceOf[Identifier].getType)
           tpe.asInstanceOf[Identifier].getType
-        case Not(expr) =>
-          typeCheckExpr(expr, TBoolean)
-          expr.setType(TBoolean)
+        case ex @ Not(ex1) =>
+          typeCheckExpr(ex1, TBoolean)
+          ex.setType(TBoolean)
           TBoolean
         case Block(exprs) =>
           if(exprs.isEmpty) {
@@ -199,14 +211,14 @@ object TypeChecking extends Phase[Program, Program] {
               }
 
             case None =>
-              typeCheckExpr(thn)
+              typeCheckExpr(thn, TUnit)
               thn.setType(thn.getType)
               expr.setType(TUnit)
               TUnit
           }
         case While(cond, body) =>
           typeCheckExpr(cond, TBoolean)
-          typeCheckExpr(body)
+          typeCheckExpr(body, TUnit)
           expr.setType(body.getType)
           body.getType
         case Println(ex) =>
@@ -258,7 +270,7 @@ object TypeChecking extends Phase[Program, Program] {
           })
 
           typeCheckExpr(m.retExpr)
-          m.retType.setType(m.retExpr.getType)
+          setType(m.retType)
 
           if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
             Reporter.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
@@ -267,12 +279,12 @@ object TypeChecking extends Phase[Program, Program] {
             var index = 0
             m.args.foreach(a => {
               setType(a.tpe)
-              if(!a.tpe.getType.isSubTypeOf(m.getSymbol.overridden.get.argList(index).getType))
+              if(a.tpe.getType != m.getSymbol.overridden.get.argList(index).getType)
                 Reporter.error("Arg list pattern not matching")
               index += 1
             })
 
-            if(m.getSymbol.overridden.get.getType != m.retType.getType)
+            if(m.getSymbol.overridden.get.getType != m.getSymbol.getType)
               Reporter.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
           }
         })

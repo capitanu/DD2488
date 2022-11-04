@@ -1,0 +1,11 @@
+//class A {}
+
+//class B {
+//  def foo(): A = {if (false) new A() else new B() }
+//}
+
+object Main extends App {
+//  println("test")
+  if(5 == 5) { 7 }; // Int
+  if(4 == 5) { 5 } // Unit 
+}

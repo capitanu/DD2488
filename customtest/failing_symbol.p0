@@ -1,0 +1,10 @@
+class A extends B {
+  override def str(): String = { "A" }
+}
+class B {
+  def str(): String = { "B" }
+}
+
+object Main extends App {
+  println( (if (true) new A() else new B()).str() );
+}
