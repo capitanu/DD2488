@@ -1,20 +1,8 @@
-class A extends B {}
-class B extends C {
-def bar(): String = {
-"b"
-}
-}
-
-class C {
-def foo(): String = {
-"I'm c"
-}
-}
-
-class D {
+class A {
 }
 
 object Main extends App {
-
-println("test")
+  var x : A = null;
+  x = if (true) new A() else new A();
+  println("test")
 }

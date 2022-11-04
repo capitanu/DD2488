@@ -515,6 +515,7 @@ object NameAnalysis extends Phase[Program, Program] {
 
     def symMain(): Unit = {
       val mainSym = (new ClassSymbol(prog.main.obj.value)).setPos(prog.main)
+      val appSym = (new ClassSymbol("App"))
       global.mainClass = mainSym
       prog.main.setSymbol(mainSym)
       prog.main.obj.setSymbol(mainSym)
