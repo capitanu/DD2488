@@ -260,7 +260,7 @@ object TypeChecking extends Phase[Program, Program] {
           typeCheckExpr(m.retExpr)
           setType(m.retType)
 
-          if(m.retExpr.getType != m.retType.getType)
+          if(m.retExpr.getType.isSubTypeOf(m.retType.getType) == false)
             Reporter.error("Return type declared and return type found do not match: " + m.retType.getType + " and " + m.retExpr.getType)
 
           if(m.overrides) {
@@ -272,7 +272,7 @@ object TypeChecking extends Phase[Program, Program] {
               index += 1
             })
 
-            if(!m.getSymbol.overridden.get.getType.isSubTypeOf(m.getSymbol.getType))
+            if(m.getSymbol.overridden.get.getType == m.getSymbol.getType)
               Reporter.error("Method return doesn't match the overridden method return type: " + m.getSymbol.getType)
           }
         })
