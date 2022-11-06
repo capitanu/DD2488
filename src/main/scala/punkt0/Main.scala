@@ -5,6 +5,7 @@ import java.io.File
 import lexer._
 import ast._
 import analyzer._
+import code._
 
 object Main {
 
@@ -79,7 +80,7 @@ object Main {
     val pp = Printer.apply(ast)
     val typeChecking = TypeChecking.run(symIDs)(ctx)
     val astPlus = TypedASTPrinter.apply(typeChecking)
-
+    CodeGeneration.run(typeChecking)(ctx)
 
     if(ctx.doTokens)
       while(lexer.hasNext)

@@ -1,0 +1,21 @@
+class A {
+  def foo(): String = {
+    var x: String = "";
+    if( 5 < 4 || "tru" == "true") 
+      x = "Hello World " + 123
+    else
+    {
+      while(!true) {
+        println("kinda stuck")
+      };
+      println("another?");
+      x = "Hello World 2"
+    };
+    x
+  }
+}
+
+object Main extends App {
+  var x: A = new A();
+  println(x.foo())
+}
