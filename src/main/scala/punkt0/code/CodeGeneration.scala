@@ -136,6 +136,7 @@ object CodeGeneration extends Phase[Program, Unit] {
         } else if(methSym.argList.contains(x.getSymbol.asInstanceOf[VariableSymbol])) {
           byteCode << ArgLoad(methSym.argList.indexOf(x.getSymbol.asInstanceOf[VariableSymbol]) + 1)
         } else if(clsSym.members.contains(x.getSymbol.asInstanceOf[VariableSymbol].name)) {
+          byteCode << ArgLoad(0)
           byteCode << GetField(clsSym.name, x.getSymbol.asInstanceOf[VariableSymbol].name, mapType(x.getSymbol.getType))
         }
 
@@ -191,21 +192,27 @@ object CodeGeneration extends Phase[Program, Unit] {
         recurseExpr(byteCode, e, clsSym, methSym)
         byteCode << InvokeVirtual("java/io/PrintStream", "println", "(" + mapType(e.getType) + ")V")
       case Assign(id, expr) =>
-        recurseExpr(byteCode, expr, clsSym, methSym)
-        if(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id) == None)
-          varMap = varMap + (id.getSymbol.asInstanceOf[VariableSymbol].id -> byteCode.getFreshVar)
+        if(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id) == None) {
 
-        id.getSymbol.getType match {
-          case TInt =>
-            byteCode << IStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
-          case TBoolean =>
-            byteCode << IStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
-          case TString =>
-            byteCode << AStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
-          case TAnyRef(_) =>
-            byteCode << AStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
-          case _ =>
-        }        
+          byteCode << ArgLoad(0)
+          recurseExpr(byteCode, expr, clsSym, methSym)
+          byteCode << PutField(clsSym.name, id.value, mapType(id.getType))
+
+        } else {
+          recurseExpr(byteCode, expr, clsSym, methSym)
+
+          id.getSymbol.getType match {
+            case TInt =>
+              byteCode << IStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
+            case TBoolean =>
+              byteCode << IStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
+            case TString =>
+              byteCode << AStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
+            case TAnyRef(_) =>
+              byteCode << AStore(varMap.get(id.getSymbol.asInstanceOf[VariableSymbol].id).get)
+            case _ =>
+          }
+        }
 
     }
 
@@ -238,6 +245,7 @@ object CodeGeneration extends Phase[Program, Unit] {
       val methSym = mt.getSymbol
 
       mt.vars.foreach(v => {
+
         recurseExpr(ch, v.expr, methSym.classSymbol, methSym)
 
         varMap = varMap + (v.getSymbol.id -> ch.getFreshVar)
