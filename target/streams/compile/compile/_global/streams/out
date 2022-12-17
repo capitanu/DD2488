@@ -1,0 +1,9 @@
+[0m[[0m[31merror[0m] [0m[0m/home/calin/kth/TCSCM2/DD2488_Compiler_Construction/dd2488-2022-Group_4/src/main/scala/punkt0/analyzer/NameAnalysis.scala:103:18: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Unit[0m
+[0m[[0m[31merror[0m] [0m[0m required: punkt0.ast.Trees.TypeTree[0m
+[0m[[0m[31merror[0m] [0m[0m          case _ =>[0m
+[0m[[0m[31merror[0m] [0m[0m                 ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/calin/kth/TCSCM2/DD2488_Compiler_Construction/dd2488-2022-Group_4/src/main/scala/punkt0/analyzer/NameAnalysis.scala:127:37: too many arguments (found 3, expected 1) for method println: (x: Any): Unit[0m
+[0m[[0m[31merror[0m] [0m[0m        println(inferType(args(0)), sym, UntypedType())[0m
+[0m[[0m[31merror[0m] [0m[0m                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m

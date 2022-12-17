@@ -80,7 +80,7 @@ object Main {
     val pp = Printer.apply(ast)
     val typeChecking = TypeChecking.run(symIDs)(ctx)
     val astPlus = TypedASTPrinter.apply(typeChecking)
-    CodeGeneration.run(typeChecking)(ctx)
+    //CodeGeneration.run(typeChecking)(ctx)
 
     if(ctx.doTokens)
       while(lexer.hasNext)

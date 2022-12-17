@@ -1,0 +1,19 @@
+class TypeUser {
+  def run(a: Int) = {
+    var b = this.identity(a);
+    b
+  }
+  def identity(a)  = { a }
+}
+
+object Main extends App {
+  println("test")
+}
+
+/*
+#a          Int
+#run        Int -> x
+#b          x
+#identity   x -> x
+#identity   Int -> x
+ */

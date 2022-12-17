@@ -5,21 +5,35 @@ import analyzer.Symbols._
 import analyzer.Types._
 
 object Trees {
+
+  private object ID {
+    private var c: Int = 1
+
+    def next: Int = {
+      val ret = c
+      c = c + 1
+      ret
+    }
+  }
+
   sealed trait Tree extends Positioned
 
   case class Program(main: MainDecl, classes: List[ClassDecl]) extends Tree
   case class MainDecl(obj: Identifier, parent: Identifier, vars: List[VarDecl], exprs: List[ExprTree]) extends Tree with Symbolic[ClassSymbol]
   case class ClassDecl(id: Identifier, parent: Option[Identifier], vars: List[VarDecl], methods: List[MethodDecl]) extends Tree with Symbolic[ClassSymbol]
-  case class VarDecl(tpe: TypeTree, id: Identifier, expr: ExprTree) extends Tree with Symbolic[VariableSymbol]
-  case class MethodDecl(overrides: Boolean, retType: TypeTree, id: Identifier, args: List[Formal], vars: List[VarDecl], exprs: List[ExprTree], retExpr: ExprTree) extends Tree with Symbolic[MethodSymbol] {
+  case class VarDecl(var tpe: TypeTree, id: Identifier, expr: ExprTree) extends Tree with Symbolic[VariableSymbol] 
+  case class MethodDecl(overrides: Boolean, var retType: TypeTree, id: Identifier, args: List[Formal], vars: List[VarDecl], exprs: List[ExprTree], retExpr: ExprTree) extends Tree with Symbolic[MethodSymbol] {
   }
-  sealed case class Formal(tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol]
+  sealed case class Formal(var tpe: TypeTree, id: Identifier) extends Tree with Symbolic[VariableSymbol]
 
   sealed trait TypeTree extends Tree with Typed
   case class BooleanType() extends TypeTree
   case class IntType() extends TypeTree
   case class StringType() extends TypeTree
   case class UnitType() extends TypeTree
+  case class UntypedType() extends TypeTree {
+    var id: Int = ID.next
+  }
 
   sealed trait ExprTree extends Tree with Typed
   case class And(lhs: ExprTree, rhs: ExprTree) extends ExprTree

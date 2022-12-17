@@ -12,17 +12,124 @@ object NameAnalysis extends Phase[Program, Program] {
 
     val global = new GlobalScope
 
+    def setType(t: TypeTree): Unit = t match {
+      case IntType() => t.setType(TInt)
+      case BooleanType() => t.setType(TBoolean)
+      case StringType() => t.setType(TString)
+      case UnitType() => t.setType(TUnit)
+      case Identifier(value) =>
+        prog.classes.foreach(cls => {
+          if(cls.id.value == value)
+            t.setType(TAnyRef(cls.getSymbol))
+        })
+      case _ =>
+        Reporter.error("No such type defined for " + t.toString())
+        TError
+    }
+
     def getType(tpe: TypeTree): Type = tpe match {
       case IntType() => TInt
       case BooleanType() => TBoolean
       case StringType() => TString
       case UnitType() => TUnit
+      case x @ UntypedType() => TUntyped(x.id)
       case Identifier(v) =>
         var cls = global.lookupClass(v).getOrElse(sys.error("Type does not exist"))
         tpe.asInstanceOf[Identifier].setSymbol(cls)
         cls.getType
       case _ => sys.error("Type does not exist")
     }
+
+    def typeToTPE(tp: Type): TypeTree = tp match {
+      case TInt => IntType()
+      case TBoolean => BooleanType()
+      case TUnit => UnitType()
+      case TString => StringType()
+      case TUntyped(x) =>
+        var rtn = UntypedType()
+        rtn.id = x
+        rtn
+      case TAnyRef(x) => Identifier(x.name)
+      case _ => sys.error("Not a valid type")
+    }
+
+    def inferType(exp: ExprTree, sym: Symbol, tpe: TypeTree): TypeTree = exp match {
+      case IntLit(_) | Minus(_, _) | Times(_, _) | Div(_, _) => IntType()
+      case StringLit(_) => StringType()
+      case True() | False() | And(_, _) | Or(_, _) | Equals(_, _) | LessThan(_, _) | Not(_) => BooleanType()
+      case New(tpe) =>
+        global.lookupClass(tpe.value) match {
+          case Some(x) => Identifier(x.name)
+          case None => tpe
+        }
+      case x @ Identifier(_) =>
+        sym match {
+          case _:ClassSymbol =>
+            sym.asInstanceOf[ClassSymbol].lookupVar(x.value) match {
+              case Some(vr) =>
+                vr.getType match {
+                  case TInt => IntType()
+                  case TBoolean => BooleanType()
+                  case TString => StringType()
+                  case TUnit => UnitType()
+                  case TNull => UnitType()
+                  case TAnyRef(clssym) => Identifier(clssym.name)
+                  case _ => tpe
+                }
+              case None =>
+                global.lookupClass(x.value) match {
+                  case Some(y) => Identifier(x.value)
+                  case None => tpe
+                }
+            }
+          case _: MethodSymbol =>
+            sym.asInstanceOf[MethodSymbol].lookupVar(x.value) match {
+              case Some(vr) =>
+                vr.getType match {
+                  case TInt => IntType()
+                  case TBoolean => BooleanType()
+                  case TString => StringType()
+                  case TUnit => UnitType()
+                  case TNull => UnitType()
+                  case TAnyRef(clssym) => Identifier(clssym.name)
+                  case _ => tpe
+                }
+              case None =>
+                global.lookupClass(x.value) match {
+                  case Some(y) => Identifier(x.value)
+                  case None => tpe
+                }
+            }
+          case _ => tpe
+        }
+      case Plus(lhs, rhs) =>
+        (inferType(lhs, sym, tpe), inferType(rhs, sym, tpe)) match {
+          case (IntType(), IntType()) => IntType()
+          case (IntType(), StringType()) => StringType()
+          case (StringType(), IntType()) => StringType()
+          case (StringType(), StringType()) => StringType()
+          case _ => tpe
+        }
+      case This() =>
+        Identifier(sym.asInstanceOf[ClassSymbol].name)
+      case Null() => UnitType()
+      case Block(exprs) =>
+        inferType(exprs.last, sym, tpe)
+      case If(expr, thn, els) =>
+        els match {
+          case Some(x) => inferType(x, sym, tpe)
+          case None => UnitType()
+        }
+      case Println(_) => UnitType()
+      case While(cond, body) => inferType(body, sym, tpe)
+      case Assign(_, _) => UnitType()
+      case mc @ MethodCall(obj, meth, args) =>
+        println(inferType(args(0), sym, UntypedType()))
+        //recurseMethCall(mc, sym)
+        tpe
+      case _ => tpe
+    }
+
 
     def recurseMethCall(expr: ExprTree, sym: Symbol): TypeTree = {
       expr match {
@@ -380,7 +487,7 @@ object NameAnalysis extends Phase[Program, Program] {
               case Some(x) => sys.error("Method " + m.id.value + " already exists in current class " + cls.id.value)
               case None => cls.getSymbol.methods = cls.getSymbol.methods + (m.id.value -> sym)
             }
-            
+
             m.getSymbol.argList = List[VariableSymbol]()
             m.args.foreach(arg => {
               val argType = getType(arg.tpe)
@@ -396,13 +503,26 @@ object NameAnalysis extends Phase[Program, Program] {
               }
             })
 
-            m.vars.foreach(v => {
 
+          }
+        })
+
+
+        cls.methods.foreach(m => {
+          if(m.overrides == false) {
+
+            m.vars.foreach(v => {
               m.getSymbol.argList.foreach(a => {
                 if(a.name == v.id.value)
                   sys.error("Shadowing not allowed")
               })
 
+              if(v.tpe == UntypedType()) {
+                var inferedType = inferType(v.expr, m.getSymbol, v.tpe)
+                if(inferedType != v.tpe) {
+                  v.tpe = inferedType
+                }
+              }
               val varType = getType(v.tpe)
               val sym = (new VariableSymbol(v.id.value)).setPos(v)
               sym.setType(varType)
@@ -412,7 +532,7 @@ object NameAnalysis extends Phase[Program, Program] {
               if(m.getSymbol.members.contains(v.id.value)) {
                 sys.error("Var already declared in method")
               } else {
-                recurseExpr(v.expr, cls.getSymbol)
+                recurseExpr(v.expr, m.getSymbol)
                 m.getSymbol.members = m.getSymbol.members + (v.id.value -> sym)
               }
             })
@@ -507,14 +627,13 @@ object NameAnalysis extends Phase[Program, Program] {
           }
         })
 
-
-
-
         cls.methods.foreach(m => {
           m.exprs.foreach(e => {
             recurseExpr(e, m.getSymbol)
           })
           recurseExpr(m.retExpr, m.getSymbol)
+          m.getSymbol.setType(m.retExpr.getType)
+          m.retType = typeToTPE(m.retExpr.getType)
         })
       })
 

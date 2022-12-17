@@ -279,8 +279,13 @@ object Parser extends Phase[Iterator[Token], Program] {
       eat(VAR)
       var varID: Identifier = Identifier(currentToken.asInstanceOf[ID].value)
       eat(IDKIND)
-      eat(COLON)
-      var typeTree: TypeTree = typeParser
+      var typeTree: TypeTree = null
+      if (currentToken.kind == COLON) {
+        eat(COLON)
+        typeTree = typeParser
+      } else {
+        typeTree = UntypedType()
+      }
       eat(EQSIGN)
       var exprDecl: ExprTree = exprParser
       eat(SEMICOLON)
@@ -304,8 +309,13 @@ object Parser extends Phase[Iterator[Token], Program] {
         while(currentToken.kind != RPAREN) {
           var argID: Identifier = Identifier(currentToken.asInstanceOf[ID].value)
           eat(IDKIND)
-          eat(COLON)
-          var argType: TypeTree = typeParser
+          var argType: TypeTree = null
+          if(currentToken.kind == COLON) {
+            eat(COLON)
+            argType = typeParser
+          } else {
+            argType = UntypedType()
+          }
           argsList = argsList :+ Formal(argType, argID)
           if(currentToken.kind != RPAREN) {
             eat(COMMA)
@@ -314,8 +324,13 @@ object Parser extends Phase[Iterator[Token], Program] {
           }
         }
         eat(RPAREN)
-        eat(COLON)
-        var retType: TypeTree = typeParser
+        var retType: TypeTree = null
+        if(currentToken.kind == COLON) {
+          eat(COLON)
+          retType = typeParser
+        } else {
+          retType = UntypedType()
+        }
         eat(EQSIGN)
         eat(LBRACE)
         var varsList: List[VarDecl] = List[VarDecl]()

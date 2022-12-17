@@ -67,6 +67,7 @@ object Printer {
         case IntType() => "Int"
         case StringType() => "String"
         case UnitType() => "Unit"
+        case x @ UntypedType() => "U" + x.id
         case And(lhs, rhs) => recursiveApply(lhs) + " && " + recursiveApply(rhs)
         case Or(lhs, rhs) => recursiveApply(lhs) + " || " + recursiveApply(rhs)
         case Minus(lhs, rhs) => recursiveApply(lhs) + " - " + recursiveApply(rhs)

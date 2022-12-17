@@ -52,6 +52,9 @@ object TypedASTPrinter {
       case UnitType()=>
         doIndent = false
         "UnitType("
+      case x @ UntypedType() =>
+        doIndent = false
+        "(U" + x.id
       case And(lhs, rhs)=>
         "And(" + apply(lhs) + "," + apply(rhs)
       case Or(lhs, rhs)=>

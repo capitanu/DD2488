@@ -6,7 +6,7 @@ import Symbols._
 object Types {
 
   trait Typed {
-    private var _tpe: Type = TUntyped
+    private var _tpe: Type = TUntyped(0)
 
     def setType(tpe: Type): this.type = { _tpe = tpe; this }
     def getType: Type = _tpe
@@ -22,12 +22,13 @@ object Types {
     def isSubTypeOf(tpe: Type): Boolean
   }
 
+
   case object TError extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = true
     override def toString = "[error]"
   }
 
-  case object TUntyped extends Type {
+  case class TUntyped(var id: Int) extends Type {
     override def isSubTypeOf(tpe: Type): Boolean = false
     override def toString = "[untyped]"
   }
