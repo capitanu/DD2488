@@ -2,9 +2,24 @@ package punkt0
 package ast
 
 import Trees._
+import analyzer.Types._
 
 object Printer {
   def apply(t: Tree): String = {
+
+    def typeToTPE(tp: Type): TypeTree = tp match {
+      case TInt => IntType()
+      case TBoolean => BooleanType()
+      case TUnit => UnitType()
+      case TString => StringType()
+      case TUntyped(x) =>
+        var rtn = UntypedType()
+        rtn.id = x
+        rtn
+      case TAnyRef(x) => Identifier(x.name)
+      case _ => sys.error("Not a valid type")
+    }
+
     def recursiveApply(tree: Tree): String = {
 
       tree match {
@@ -63,7 +78,7 @@ object Printer {
           rtn + "\n}\n"
         case BooleanType() => "Boolean"
         case Formal(tpe, id) =>
-          recursiveApply(id) + ": " + recursiveApply(tpe)
+          recursiveApply(id) + ": " + recursiveApply(typeToTPE(id.getType))
         case IntType() => "Int"
         case StringType() => "String"
         case UnitType() => "Unit"

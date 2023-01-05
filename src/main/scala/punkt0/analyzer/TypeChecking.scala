@@ -28,8 +28,7 @@ object TypeChecking extends Phase[Program, Program] {
             t.setType(TAnyRef(cls.getSymbol))
         })
       case _ =>
-        Reporter.error("No such type defined for " + t.toString())
-        TError
+        TUntyped
     }
 
     def typeCheckVar(v: VarDecl): Type = v.tpe match {
@@ -43,9 +42,7 @@ object TypeChecking extends Phase[Program, Program] {
           Reporter.error("Declared type and actual type do not match")
         }
         TUnit
-      case _ =>
-        Reporter.error("No valid type for the variable")
-        TError
+      case x @ UntypedType() => TUntyped(x.id)
 
     }
 

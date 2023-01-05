@@ -23,8 +23,7 @@ object NameAnalysis extends Phase[Program, Program] {
             t.setType(TAnyRef(cls.getSymbol))
         })
       case _ =>
-        Reporter.error("No such type defined for " + t.toString())
-        TError
+        TUntyped
     }
 
     def getType(tpe: TypeTree): Type = tpe match {
@@ -124,8 +123,7 @@ object NameAnalysis extends Phase[Program, Program] {
       case While(cond, body) => inferType(body, sym, tpe)
       case Assign(_, _) => UnitType()
       case mc @ MethodCall(obj, meth, args) =>
-        println(inferType(args(0), sym, UntypedType()))
-        //recurseMethCall(mc, sym)
+        //   recurseMethCall(mc, sym)
         tpe
       case _ => tpe
     }
@@ -134,7 +132,12 @@ object NameAnalysis extends Phase[Program, Program] {
     def recurseMethCall(expr: ExprTree, sym: Symbol): TypeTree = {
       expr match {
         case MethodCall(obj, meth, args) =>
+          // traverseMethod(expr, sym)
           recurseExpr(obj, sym)
+          // args.foreach(a => {
+          //   a.setType(getType(inferType(a, sym, UntypedType())))
+          //   println(a.getType)
+          // })
           obj match {
             case x @ MethodCall(obj2, meth2, args2) =>
               var y = recurseMethCall(x,sym)
@@ -154,7 +157,12 @@ object NameAnalysis extends Phase[Program, Program] {
                 case x: MethodSymbol =>
                   x.classSymbol.lookupMethod(meth.value) match {
                     case Some(m) =>
+                      var i = 0
                       if(m.argList.length == args.length) {
+                        m.argList.foreach(a => {
+                          a.setType(args(i).getType)
+                          i = i + 1
+                        })
                         meth.setSymbol(m)
                         meth
                       }

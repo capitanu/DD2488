@@ -1,3 +1,4 @@
+
 package punkt0
 
 import java.io.File
@@ -28,6 +29,10 @@ object Main {
 
       case "--print" :: args =>
         ctx = ctx.copy(doPrintMain = true)
+        processOption(args)
+
+      case "--ti" :: args =>
+        ctx = ctx.copy(doTypeInfer = true)
         processOption(args)
 
       case "--symid" :: args =>
@@ -67,6 +72,7 @@ object Main {
     println(" --print        prints the AST")
     println(" --symid        adds the symbold ids")
     println(" --ast+         adds the symbold ids")
+    println(" --ti           prints the type inferred ast")
     println(" -d <outdir>    generates class files in the specified directory")
   }
 
@@ -78,9 +84,11 @@ object Main {
     val symIDs = NameAnalysis.run(ast)(ctx)
     val ppSymIds = Printer.apply(symIDs)
     val pp = Printer.apply(ast)
-    val typeChecking = TypeChecking.run(symIDs)(ctx)
+    val typeInference = TypeInference.run(symIDs)(ctx)
+    val tiPrinter = Printer.apply(typeInference)
+    val typeChecking = TypeChecking.run(typeInference)(ctx)
     val astPlus = TypedASTPrinter.apply(typeChecking)
-    //CodeGeneration.run(typeChecking)(ctx)
+    CodeGeneration.run(typeChecking)(ctx)
 
     if(ctx.doTokens)
       while(lexer.hasNext)
@@ -88,6 +96,9 @@ object Main {
 
     if(ctx.doAST)
       println(ast)
+
+    if(ctx.doTypeInfer)
+      println(tiPrinter)
 
     if(ctx.doPrintMain)
       println(pp)
